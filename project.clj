@@ -4,7 +4,7 @@
   :license {:name "BSD (2-Clause)"
             :url "http://opensource.org/licenses/BSD-2-Clause"}
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [buddy/buddy-core "0.3.0-SNAPSHOT"]
+                 [buddy/buddy-core "0.3.0"]
                  [clojurewerkz/scrypt "1.2.0"]]
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
