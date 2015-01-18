@@ -15,13 +15,14 @@
 (ns buddy.test-buddy-hashers
   (:require [clojure.test :refer :all]
             [buddy.core.codecs :refer :all]
+            [buddy.hashers :as hashers]
             [buddy.hashers.pbkdf2 :as pbkdf2]
             [buddy.hashers.bcrypt :as bcrypt]
             [buddy.hashers.sha256 :as sha256]
             [buddy.hashers.md5 :as md5]
             [buddy.hashers.scrypt :as scrypt]))
 
-(deftest buddy-hashers
+(deftest buddy-hashers-old
   (testing "Test low level api for encrypt/verify pbkdf2"
     (let [plain-password      "my-test-password"
           encrypted-password  (pbkdf2/make-password plain-password)]
@@ -47,3 +48,19 @@
           encrypted-password  (scrypt/make-password plain-password)]
       (is (scrypt/check-password plain-password encrypted-password)))))
 
+(deftest buddy-hashers
+  (let [plain-password "my-test-password"]
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha1})))
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256})))
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha3_256})))
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :bcrypt+sha512})))
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :scrypt})))
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :sha256})))
+    (is (hashers/check plain-password
+                       (hashers/encrypt plain-password {:algorithm :md5})))))
