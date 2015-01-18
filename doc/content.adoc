@@ -10,7 +10,7 @@ Andrey Antukh, <niwi@niwi.be>
 == Introduction
 
 Buddy *hashers* module is dedicated to provide a collection
-of password hashers functions.
+of secure password hashers functions.
 
 .Supported password hashers algorithms
 [options="header", cols="^1,^1,^3"]
