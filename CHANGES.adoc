@@ -2,6 +2,9 @@
 
 == Version 0.3.0
 
-Date: unreleased
+Date: 2015-01-18
 
 - First version splitted from monolitic buddy package.
+- Add complete refactored version of hashers, more flexible and extensible.
+- Add support for pbkdf2+sha256 and pbkdf2+sha3_256 password hasher algorithms.
+- Maintain the old namespace for backward compatibility.
