@@ -1,4 +1,4 @@
-= Buddy - Password Hashers
+= buddy-hashers - Collection of password hashers.
 Andrey Antukh, <niwi@niwi.be>
 0.3.0
 :toc: left
