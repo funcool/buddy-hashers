@@ -1,5 +1,13 @@
 = Changelog
 
+== Version 0.4.0
+
+Date: 2015-02-22
+
+- Update buddy-core dependency version to 0.4.0
+- Adapt the code to buddy-core 0.4.0
+
+
 == Version 0.3.0
 
 Date: 2015-01-18
