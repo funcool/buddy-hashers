@@ -14,7 +14,7 @@
 
 (ns buddy.hashers.scrypt
   (:require [buddy.core.codecs :refer :all]
-            [buddy.core.keys :refer [make-random-bytes]]
+            [buddy.core.nonce :as nonce]
             [clojure.string :refer [split]]
             [clojurewerkz.scrypt.core :as sc]))
 
@@ -25,11 +25,11 @@
 
 (defn make-password
   "Encrypts a raw string password using scrypt algorithm
-and return formated string."
+  and return formated string."
   [pw & [{:keys [salt cpucost memcost parallelism]
           :or {cpucost 65536 memcost 8 parallelism 1}}]]
   (let [salt   (cond
-                (nil? salt) (bytes->hex (make-random-bytes 12))
+                (nil? salt) (bytes->hex (nonce/random-bytes 12))
                 :else (bytes->hex (->byte-array salt)))
         passwd (-> (str salt pw salt)
                    (make-scrypt cpucost memcost parallelism)
@@ -39,7 +39,7 @@ and return formated string."
 
 (defn check-password
   "Check if a plaintext password matches with other
-hashed password."
+  hashed password."
   [attempt hashed]
   (let [[t s pw] (split hashed #"\$")]
     (if (not= t "scrypt")

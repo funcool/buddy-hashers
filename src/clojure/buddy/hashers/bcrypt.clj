@@ -14,7 +14,7 @@
 
 (ns buddy.hashers.bcrypt
   (:require [buddy.core.hash :refer [sha512]]
-            [buddy.core.keys :refer [make-random-bytes]]
+            [buddy.core.nonce :as nonce]
             [buddy.core.codecs :refer :all]
             [clojure.string :refer [split]])
   (:import buddy.impl.bcrypt.BCrypt))
@@ -32,7 +32,7 @@
   string."
   [pw & [{:keys [salt rounds] :or {rounds 12}}]]
   (let [salt   (if (nil? salt)
-                 (bytes->hex (make-random-bytes 12))
+                 (bytes->hex (nonce/random-bytes 12))
                  (bytes->hex (->byte-array salt)))
         passwd (-> (str salt pw salt)
                    (make-bcrypt rounds)

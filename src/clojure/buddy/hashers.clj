@@ -15,15 +15,15 @@
 (ns buddy.hashers
   (:require [buddy.core.codecs :refer :all]
             [buddy.core.hash :as hash]
-            [buddy.core.keys :refer [make-random-bytes]]
+            [buddy.core.nonce :as nonce]
+            [buddy.core.bytes :as bytes]
             [clojure.string :as str]
             [clojurewerkz.scrypt.core :as scrypt])
   (:import org.bouncycastle.crypto.digests.SHA1Digest
            org.bouncycastle.crypto.digests.SHA256Digest
            org.bouncycastle.crypto.digests.SHA3Digest
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
-           buddy.impl.bcrypt.BCrypt
-           buddy.Arrays))
+           buddy.impl.bcrypt.BCrypt))
 
 (java.security.Security/addProvider
  (org.bouncycastle.jce.provider.BouncyCastleProvider.))
@@ -48,7 +48,7 @@
 
 (defmethod derive-password :pbkdf2+sha1
   [{:keys [algorithm password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* algorithm))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA1Digest.))
                (.init password salt iterations))
@@ -60,7 +60,7 @@
 
 (defmethod derive-password :pbkdf2+sha256
   [{:keys [algorithm password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* algorithm))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
                (.init password salt iterations))
@@ -72,7 +72,7 @@
 
 (defmethod derive-password :pbkdf2+sha3_256
   [{:keys [algorithm password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* algorithm))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA3Digest. 256))
                (.init password salt iterations))
@@ -84,11 +84,11 @@
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [algorithm password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* algorithm))
         iv (BCrypt/gensalt iterations)
         pwd (-> password
-                (concat-byte-arrays salt)
+                (bytes/concat salt)
                 (hash/sha512)
                 (bytes->hex)
                 (BCrypt/hashpw iv)
@@ -100,11 +100,11 @@
 
 (defmethod derive-password :scrypt
   [{:keys [algorithm password salt cpucost memcost parallelism] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         cpucost (or cpucost 65536)
         memcost (or memcost 8)
         parallelism (or parallelism 1)
-        password (-> (concat-byte-arrays salt password salt)
+        password (-> (bytes/concat salt password salt)
                      (bytes->hex)
                      (scrypt/encrypt cpucost memcost parallelism)
                      (str->bytes))]
@@ -117,8 +117,8 @@
 
 (defmethod derive-password :sha256
   [{:keys [algorithm password salt] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
-        password (-> (concat-byte-arrays password salt)
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+        password (-> (bytes/concat password salt)
                      (hash/sha256))]
     {:algorithm :sha256
      :password password
@@ -126,8 +126,8 @@
 
 (defmethod derive-password :md5
   [{:keys [algorithm password salt] :as pwdparams}]
-  (let [salt (->byte-array (or salt (make-random-bytes 12)))
-        password (-> (concat-byte-arrays password salt)
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+        password (-> (bytes/concat password salt)
                      (hash/md5))]
     {:algorithm :md5
      :password password
@@ -143,7 +143,7 @@
 
 (defmethod check-password :bcrypt+sha512
   [pwdparams attempt]
-  (let [candidate (-> (concat-byte-arrays attempt (:salt pwdparams))
+  (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
                       (hash/sha512))]
     (BCrypt/checkpw (bytes->hex candidate)
                     (bytes->str (:password pwdparams)))))
@@ -151,7 +151,7 @@
 (defmethod check-password :scrypt
   [pwdparams attempt]
   (let [salt (:salt pwdparams)
-        candidate (concat-byte-arrays salt attempt salt)]
+        candidate (bytes/concat salt attempt salt)]
     (scrypt/verify (bytes->hex candidate)
                    (bytes->str (:password pwdparams)))))
 
@@ -159,7 +159,7 @@
   [pwdparams attempt]
   (let [candidate (-> (assoc pwdparams :password attempt)
                       (derive-password))]
-    (Arrays/equals (:password pwdparams)
+    (bytes/equals? (:password pwdparams)
                    (:password candidate))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

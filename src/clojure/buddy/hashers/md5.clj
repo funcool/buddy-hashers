@@ -14,15 +14,16 @@
 
 (ns buddy.hashers.md5
   (:require [buddy.core.codecs :refer :all]
+            [buddy.core.nonce :as nonce]
+            [buddy.core.bytes :as bytes]
             [buddy.core.hash :refer [md5]]
-            [buddy.core.keys :refer [make-random-bytes]]
             [clojure.string :refer [split]])
   (:import (java.security MessageDigest)))
 
 (defn make-md5
   [password salt]
-  (-> (concat-byte-arrays (->byte-array password)
-                          (->byte-array salt))
+  (-> (bytes/concat (->byte-array password)
+                    (->byte-array salt))
       (md5)
       (bytes->hex)))
 
@@ -31,7 +32,7 @@
   md5 hash algorithm and return formatted
   string."
   [pw & [{:keys [salt]}]]
-  (let [salt      (if (nil? salt) (make-random-bytes 12) salt)
+  (let [salt      (if (nil? salt) (nonce/random-bytes 12) salt)
         password  (make-md5 pw salt)]
     (format "md5$%s$%s" (bytes->hex salt) password)))
 
