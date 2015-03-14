@@ -5,5 +5,7 @@
 
 *buddy-hashers* module is dedicated to provide a collection of secure password hashers functions.
 
+[![Clojars Project](http://clojars.org/buddy/buddy-hashers/latest-version.svg)](http://clojars.org/buddy/buddy-hashers)
+
 See the [documentation](https://funcool.github.io/buddy-hashers/latest/) for more detailed
 information.
