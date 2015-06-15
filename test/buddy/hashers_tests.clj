@@ -65,3 +65,10 @@
     (is (hashers/check plain-password
                        (hashers/encrypt plain-password {:algorithm :md5})))))
 
+(deftest buddy-hashers-nil
+  (let [plain-password "my-test-password"
+        encrypted-password (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256})]
+    (is (= nil (hashers/check nil encrypted-password)))
+    (is (= nil (hashers/check plain-password nil)))
+    (is (= nil (hashers/check nil nil)))))
+
