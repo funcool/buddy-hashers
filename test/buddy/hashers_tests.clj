@@ -1,4 +1,4 @@
-;; Copyright 2014 Andrey Antukh <niwi@niwi.be>
+;; Copyright 2014-2015 Andrey Antukh <niwi@niwi.nz>
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License")
 ;; you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 ;; See the License for the specific language governing permissions and
 ;; limitations under the License.
 
-(ns buddy.test-buddy-hashers
+(ns buddy.hashers-tests
   (:require [clojure.test :refer :all]
             [buddy.core.codecs :refer :all]
             [buddy.hashers :as hashers]
@@ -64,3 +64,4 @@
                        (hashers/encrypt plain-password {:algorithm :sha256})))
     (is (hashers/check plain-password
                        (hashers/encrypt plain-password {:algorithm :md5})))))
+
