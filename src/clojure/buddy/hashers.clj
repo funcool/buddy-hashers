@@ -250,6 +250,7 @@
   "Check if a unencrypted password matches
   with another encrypted password."
   [attempt encrypted]
-  (let [pwdparams (parse-password encrypted)
-        attempt (str->bytes attempt)]
-    (check-password pwdparams attempt)))
+  (when (and attempt encrypted)
+    (let [pwdparams (parse-password encrypted)
+          attempt (str->bytes attempt)]
+      (check-password pwdparams attempt))))
