@@ -15,38 +15,7 @@
 (ns buddy.hashers-tests
   (:require [clojure.test :refer :all]
             [buddy.core.codecs :refer :all]
-            [buddy.hashers :as hashers]
-            [buddy.hashers.pbkdf2 :as pbkdf2]
-            [buddy.hashers.bcrypt :as bcrypt]
-            [buddy.hashers.sha256 :as sha256]
-            [buddy.hashers.md5 :as md5]
-            [buddy.hashers.scrypt :as scrypt]))
-
-(deftest buddy-hashers-old
-  (testing "Test low level api for encrypt/verify pbkdf2"
-    (let [plain-password      "my-test-password"
-          encrypted-password  (pbkdf2/make-password plain-password)]
-      (is (pbkdf2/check-password plain-password encrypted-password))))
-
-  (testing "Test low level api for encrypt/verify sha256"
-    (let [plain-password      "my-test-password"
-          encrypted-password  (sha256/make-password plain-password)]
-      (is (sha256/check-password plain-password encrypted-password))))
-
-  (testing "Test low level api for encrypt/verify md5"
-    (let [plain-password      "my-test-password"
-          encrypted-password  (md5/make-password plain-password)]
-      (is (md5/check-password plain-password encrypted-password))))
-
-  (testing "Test low level api for encrypt/verify bcrypt"
-    (let [plain-password      "my-test-password"
-          encrypted-password  (bcrypt/make-password plain-password)]
-      (is (bcrypt/check-password plain-password encrypted-password))))
-
-  (testing "Test low level api for encrypt/verify scrypt"
-    (let [plain-password      "my-test-password"
-          encrypted-password  (scrypt/make-password plain-password)]
-      (is (scrypt/check-password plain-password encrypted-password)))))
+            [buddy.hashers :as hashers]))
 
 (deftest buddy-hashers
   (let [plain-password "my-test-password"]
