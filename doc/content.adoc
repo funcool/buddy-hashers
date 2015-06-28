@@ -1,11 +1,14 @@
 = buddy-hashers - password hashers for Clojure
 Andrey Antukh, <niwi@niwi.nz>
-0.5.0
+0.6.0
 :toc: left
 :!numbered:
 :source-highlighter: pygments
 :pygments-style: friendly
 :sectlinks:
+:idseparator: -
+:idprefix:
+:toclevels: 2
 
 == Introduction
 
@@ -51,7 +54,7 @@ vector on your *_project.clj_* file:
 ._on project.clj_
 [source,clojure]
 ----
-[buddy/buddy-hashers "0.5.0"]
+[buddy/buddy-hashers "0.6.0"]
 ----
 
 === Gradle
@@ -60,19 +63,9 @@ If you are using gradle, this is a dependency line for gradle dsl:
 
 [source,groovy]
 ----
-compile "buddy:buddy-hashers:0.5.0"
+compile "buddy:buddy-hashers:0.6.0"
 ----
 
-=== Get the Code
-
-_buddy-hashers_ is open source and can be found on link:https://github.com/funcool/buddy-hashers[github].
-
-You can clone the public repository with this command:
-
-[source,text]
-----
-git clone https://github.com/funcool/buddy-hashers
-----
 
 == Quick Start
 
@@ -133,21 +126,51 @@ to *encrypt* function. And options vary depending on the used algorithm.
 | `:md5` | `:salt` | salt=random
 |==========================================================
 
-== Backward compatibility
 
-`buddy-hashers` is a result of spliting `buddy==0.2.1` into different modules. And it introduces
-a new implementation of hashers, more flexible and extensible with much smaller api.
+== Developers Guide
 
-But, it maintains backward compatibility for convenience, but is *deprecated* and will *not
-maintained* for more time.
+=== Contributing
 
-.Table of old implementation hashers and their namespace.
-[options="header", cols="^1,^3"]
-|===============================================
-| Hash algorithm name  | Namespace
-| Bcrypt               | `buddy.hashers.bcrypt`
-| Pbkdf2               | `buddy.hashers.pbkdf2`
-| Scrypt               | `buddy.hashers.scrypt`
-| sha256               | `buddy.hashers.sha256`
-| md5                  | `buddy.hashers.md5`
-|===============================================
+Unlike Clojure and other Clojure contributed libraries _buddy-hashers_ does not have many
+restrictions for contributions. Just open an issue or pull request.
+
+
+=== Philosophy
+
+Five most important rules:
+
+- Beautiful is better than ugly.
+- Explicit is better than implicit.
+- Simple is better than complex.
+- Complex is better than complicated.
+- Readability counts.
+
+All contributions to _buddy-hashers_ should keep these important rules in mind.
+
+
+=== Get the Code
+
+_buddy-hashers_ is open source and can be found on link:https://github.com/funcool/buddy-hashers[github].
+
+You can clone the public repository with this command:
+
+[source,text]
+----
+git clone https://github.com/funcool/buddy-hashers
+----
+
+
+=== Run tests
+
+For running tests just execute this:
+
+[source,bash]
+----
+lein test
+----
+
+
+=== License
+
+_buddy-hashers_ is licensed under Apache 2.0 License. You can see the complete text
+of the license on the root of the repository on `LICENSE` file.
