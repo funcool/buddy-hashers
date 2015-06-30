@@ -36,6 +36,28 @@
     (is (hashers/check plain-password
                        (hashers/encrypt plain-password {:algorithm :md5})))))
 
+
+(deftest confirm-check-failure
+  (let [plain-password "my-test-password"
+        bad-password   "my-text-password"]
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :pbkdf2+sha1}))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256}))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :pbkdf2+sha3_256}))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :bcrypt+sha512}))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :scrypt}))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :sha256}))))
+    (is (not (hashers/check bad-password
+                            (hashers/encrypt plain-password {:algorithm :md5}))))))
+
+
 (deftest buddy-hashers-nil
   (let [plain-password "my-test-password"
         encrypted-password (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256})]
