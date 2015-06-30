@@ -65,3 +65,20 @@
     (is (= nil (hashers/check plain-password nil)))
     (is (= nil (hashers/check nil nil)))))
 
+
+;;;;
+;;;; Tests related to the resulting value's structure
+;;;;
+
+(deftest algorithm-embedded-in-hash
+  ;; Confirm that the algorithm used is always embedded at the start of the hash
+  (let [plain-password "my-test-password"]
+    (are [algorithm] (.startsWith (hashers/encrypt plain-password {:algorithm algorithm}) (name algorithm))
+                     :pbkdf2+sha1
+                     :pbkdf2+sha256
+                     :pbkdf2+sha3_256
+                     :bcrypt+sha512
+                     :scrypt
+                     :sha256
+                     :md5
+                     )))
