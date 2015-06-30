@@ -20,6 +20,8 @@
 (deftest buddy-hashers
   (let [plain-password "my-test-password"]
     (is (hashers/check plain-password
+                       (hashers/encrypt plain-password)))
+    (is (hashers/check plain-password
                        (hashers/encrypt plain-password {:algorithm :pbkdf2+sha1})))
     (is (hashers/check plain-password
                        (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256})))
