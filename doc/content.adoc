@@ -48,7 +48,7 @@ _buddy-hashers_ is tested with these platforms:
 
 === Leiningen
 
-The simplest way to use _suricatta_ in a clojure project, is by including it in the dependency
+The simplest way to use _buddy-hashers_ in a clojure project, is by including it in the dependency
 vector on your *_project.clj_* file:
 
 ._on project.clj_
