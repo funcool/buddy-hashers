@@ -2,9 +2,10 @@
 
 == Version 0.7.0
 
-Date: unreleased
+Date: 2015-09-19
 
 - Set default clojure version to 1.7.0
+- Update buddy-core version to 0.7.0
 
 
 == Version 0.6.0

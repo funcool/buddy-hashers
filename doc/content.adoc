@@ -1,6 +1,6 @@
 = buddy-hashers - password hashers for Clojure
 Andrey Antukh, <niwi@niwi.nz>
-0.6.0
+0.7.0
 :toc: left
 :!numbered:
 :source-highlighter: pygments
@@ -54,7 +54,7 @@ vector on your *_project.clj_* file:
 ._on project.clj_
 [source,clojure]
 ----
-[buddy/buddy-hashers "0.6.0"]
+[buddy/buddy-hashers "0.7.0"]
 ----
 
 === Gradle
@@ -63,7 +63,7 @@ If you are using gradle, this is a dependency line for gradle dsl:
 
 [source,groovy]
 ----
-compile "buddy:buddy-hashers:0.6.0"
+compile "buddy:buddy-hashers:0.7.0"
 ----
 
 
