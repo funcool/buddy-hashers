@@ -36,15 +36,42 @@
   {:pbkdf2+sha1 100000
    :pbkdf2+sha256 100000
    :pbkdf2+sha3_256 100000
-   :bcrypt+sha512 12})
+   :bcrypt+sha512 12
+   :scrypt {:cpucost 65536
+            :memcost 8}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Key Derivation
+;; Impl Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmulti parse-password
+  "Parse password from string to parts."
+  (fn [encryptedpassword]
+    (-> encryptedpassword
+        (str/split #"\$")
+        (first)
+        (keyword))))
 
 (defmulti derive-password
   "Derive key depending on algorithm."
   :algorithm)
+
+(defmulti check-password
+  "Password verification implementation."
+  :algorithm)
+
+(defmulti format-password
+  "Format password depending on algorithm."
+  :algorithm)
+
+(defmulti must-update?
+  "Check if the current password configuration
+  is succeptible to be updatable."
+  :algorithm)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key Derivation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod derive-password :pbkdf2+sha1
   [{:keys [algorithm password salt iterations] :as pwdparams}]
@@ -101,8 +128,8 @@
 (defmethod derive-password :scrypt
   [{:keys [algorithm password salt cpucost memcost parallelism] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
-        cpucost (or cpucost 65536)
-        memcost (or memcost 8)
+        cpucost (or cpucost (get-in *default-iterations* [:scrypt :cpucost]))
+        memcost (or memcost (get-in *default-iterations* [:scrypt :memcost]))
         parallelism (or parallelism 1)
         password (-> (bytes/concat salt password salt)
                      (bytes->hex)
@@ -137,10 +164,6 @@
 ;; Key Verification
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti check-password
-  "Password verification implementation."
-  :algorithm)
-
 (defmethod check-password :bcrypt+sha512
   [pwdparams attempt]
   (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
@@ -166,10 +189,6 @@
 ;; Key Formatting
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti format-password
-  "Format password depending on algorithm."
-  :algorithm)
-
 (defmethod format-password :scrypt
   [{:keys [password salt cpucost memcost parallelism]}]
   (let [salt (bytes->hex salt)
@@ -188,12 +207,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Parsing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmulti parse-password
-  "Parse password from string to parts."
-  (fn [encryptedpassword]
-    (let [[alg, rest] (str/split encryptedpassword #"\$" 2)]
-      (keyword alg))))
 
 (defmethod parse-password :scrypt
   [encryptedpassword]
@@ -232,6 +245,24 @@
      :iterations (Integer/parseInt iterations)}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Update Algorithm
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmethod must-update? :default
+  [{:keys [algorithm iterations]}]
+  (let [desired-iterations (get *default-iterations* algorithm)]
+    (and desired-iterations (> desired-iterations iterations))))
+
+(defmethod must-update? :scrypt
+  [{:keys [algorithm memcost cpucost]}]
+  (let [desired-memcost (get-in *default-iterations* [:scrypt :memcost])
+        desired-cpucost (get-in *default-iterations* [:scrypt :cpucost])]
+    (and desired-cpucost
+         desired-memcost
+         (or (> desired-memcost memcost)
+             (> desired-cpucost cpucost)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -249,8 +280,15 @@
 (defn check
   "Check if a unencrypted password matches
   with another encrypted password."
-  [attempt encrypted]
-  (when (and attempt encrypted)
-    (let [pwdparams (parse-password encrypted)
-          attempt (str->bytes attempt)]
-      (check-password pwdparams attempt))))
+  ([attempt encrypted]
+   (check attempt encrypted {}))
+  ([attempt encrypted {:keys [limit setter prefered]}]
+   (when (and attempt encrypted)
+     (let [pwdparams (parse-password encrypted)]
+       (if (and (set? limit) (not (contains? limit (:algorithm pwdparams))))
+         false
+         (let [attempt (str->bytes attempt)
+               result (check-password pwdparams attempt)]
+           (when (and result (fn? setter) (must-update? pwdparams))
+             (setter attempt))
+           result))))))
