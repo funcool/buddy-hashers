@@ -1,5 +1,16 @@
 = Changelog
 
+== Version 0.7.1
+
+Date: unreleased
+
+- Add the ability to limit the set of allowed algorithms
+  to be used in the check process.
+- Add the ability to react in case the password has weak
+  configuration and rehash it again (and store fresh
+  encoded password with updated stronger config).
+
+
 == Version 0.7.0
 
 Date: 2015-09-19
