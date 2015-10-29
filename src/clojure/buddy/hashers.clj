@@ -35,7 +35,7 @@
 (def ^:dynamic *default-iterations*
   {:pbkdf2+sha1 100000
    :pbkdf2+sha256 100000
-   :pbkdf2+sha3_256 100000
+   :pbkdf2+sha3_256 5000
    :bcrypt+sha512 12
    :scrypt {:cpucost 65536
             :memcost 8}})
