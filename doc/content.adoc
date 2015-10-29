@@ -12,8 +12,9 @@ Andrey Antukh, <niwi@niwi.nz>
 
 == Introduction
 
-Buddy *hashers* module is dedicated to provide a collection
-of secure password hashers functions.
+*buddy-hashers* provides a collection of secure password hashers
+with lightweight and extensible abstraction for build powerfull
+password authentication processes.
 
 .Supported password hashers algorithms
 [options="header", cols="^1,^1,^3"]
@@ -28,17 +29,18 @@ of secure password hashers functions.
 | `:md5`             | No               | Simple hash based password hasher that uses md5.
 |===========================================================================
 
-== Project Maturity
+
+=== Project Maturity
 
 Since _buddy-hashers_ is a young project there can be some API breakage.
 
 
-== Install
+=== Install
 
 This section covers the _buddy-hashers_ library installing process and its requirements.
 
 
-=== Requirements
+==== Requirements
 
 _buddy-hashers_ is tested with these platforms:
 
@@ -48,42 +50,26 @@ _buddy-hashers_ is tested with these platforms:
 
 === Leiningen
 
-The simplest way to use _buddy-hashers_ in a clojure project, is by including it in the dependency
-vector on your *_project.clj_* file:
+The simplest way to use _buddy-hashers_ in a clojure project, is by including it in
+the dependency list on your *_project.clj_* file:
 
-._on project.clj_
 [source,clojure]
 ----
 [buddy/buddy-hashers "0.7.0"]
 ----
 
-=== Gradle
-
-If you are using gradle, this is a dependency line for gradle dsl:
-
-[source,groovy]
-----
-compile "buddy:buddy-hashers:0.7.0"
-----
-
-
+[[quickstart]]
 == Quick Start
 
-Hashers module consists in two public functions: *encrypt* and *check* and both them are
-located on `buddy.hashers` namespace.
+Hashers module consists in two public functions: *encrypt* and *check* and both
+them are located on `buddy.hashers` namespace.
 
-For start using it, just import it on your namespace:
-
-[source,clojure]
-----
-(ns my.app
-  (:require [buddy.hashers :as hashers]))
-----
-
-Now, choice the algorithm and encrypt your passwords:
+Let start encrypting a password:
 
 [source,clojure]
 ----
+(require '[buddy.hashers :as hashers])
+
 ;; Generate hash from plain password
 (hashers/encrypt "secretpassword"))
 ;; => "bcrypt+sha512$4i9sd34m..."
@@ -105,10 +91,9 @@ specify it using the the second parameter to *encrypt* function:
 ;; => true
 ----
 
-NOTE: hasher functions, unlike cryptographic hash functions, expect strings instead
-of bytes.
-
 == Advanced options
+
+=== Algorithm tunning params
 
 Each algorithm can be tweaked passing additional parameters on the second argument
 to *encrypt* function. And options vary depending on the used algorithm.
@@ -126,14 +111,48 @@ to *encrypt* function. And options vary depending on the used algorithm.
 | `:md5` | `:salt` | salt=random
 |==========================================================
 
+=== Limiting algorithms
+
+Some times you don't want to use all the supported algorithms and you only want
+to use a own set of algorithms in the password check process. That can be done
+passing additional parameter to the `check` function:
+
+[source, clojure]
+----
+(def trusted-algs #{:pbkdf2+sha256 :bcrypt+sha512})
+
+(hashers/check incoming-pwd encrypted-pwd {:limit trusted-algs})
+----
+
+The `check` function will return false if the incoming password uses an algorithm
+that does not allowed.
+
+
+=== Rehash Hook
+
+When time passes, the password hashers config is constantly updated for to be
+aligned with the latest security standards but you have a big database with users
+that are using password with now weak password configuration.
+
+*buddy-hashers* comes with a solution for it. It consists in a hook for password
+check process that if the password is correctly verified and is detected that has
+weak configuration, will be called with the plain password. That process allows
+to be reactive and update the users password (when the user does login as example)
+along hashers configuration is changed.
+
+[source, clojure]
+----
+(letfn [(setter [pwd]
+          (let [pwd (hashers/encrypt pwd)]
+            (do-the-db-update pwd)))]
+  (hashers/check incoming-pwd encrypted-pwd {:setter setter}))
+----
+
+The setter will be called when the incoming password is valid but its config
+is weaker that the current default one.
+
 
 == Developers Guide
-
-=== Contributing
-
-Unlike Clojure and other Clojure contributed libraries _buddy-hashers_ does not have many
-restrictions for contributions. Just open an issue or pull request.
-
 
 === Philosophy
 
@@ -148,9 +167,16 @@ Five most important rules:
 All contributions to _buddy-hashers_ should keep these important rules in mind.
 
 
+=== Contributing
+
+Unlike Clojure and other Clojure contributed libraries _buddy-hashers_ does not
+have many restrictions for contributions. Just open an issue or pull request.
+
+
 === Get the Code
 
-_buddy-hashers_ is open source and can be found on link:https://github.com/funcool/buddy-hashers[github].
+_buddy-hashers_ is open source and can be found on
+link:https://github.com/funcool/buddy-hashers[github].
 
 You can clone the public repository with this command:
 
