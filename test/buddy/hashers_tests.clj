@@ -95,3 +95,19 @@
       :scrypt
       :sha256
       :md5)))
+
+(deftest debug-time-bench
+  (let [pwd "my-test-password"]
+    (are [alg]
+        (do
+          (println alg)
+          (time (hashers/encrypt pwd {:algorithm alg}))
+          true)
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
+
