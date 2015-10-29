@@ -96,6 +96,19 @@
       :sha256
       :md5)))
 
+(deftest limit-available-algorithms
+  (let [pwd (hashers/encrypt "hello" {:algorithm :md5})
+        limit #{:pbkdf2+sha256 :bcrypt+sha512}]
+    (is (hashers/check "hello" pwd))
+    (is (not (hashers/check "hello" pwd {:limit limit})))))
+
+(deftest setter-called
+  (let [pwd (hashers/encrypt "hello" {:algorithm :bcrypt+sha512
+                                      :iterations 10})
+        p (promise)]
+    (is (hashers/check "hello" pwd {:setter #(deliver p %)}))
+    (is (= (deref p 10 nil) "hello"))))
+
 (deftest debug-time-bench
   (let [pwd "my-test-password"]
     (are [alg]
