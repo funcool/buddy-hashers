@@ -18,105 +18,80 @@
             [buddy.hashers :as hashers]))
 
 (deftest buddy-hashers
-  (let [plain-password "my-test-password"]
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password)))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha1})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha3_256})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :bcrypt+sha512})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :scrypt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :sha256})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :md5})))))
-
+  (let [pwd "my-test-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd {:algorithm alg})]
+          (hashers/check pwd result))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
 
 (deftest buddy-hashers-with-salt
-  (let [plain-password "my-test-password"
-        salt           "saltysalted"]
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha1 :salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256 :salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :pbkdf2+sha3_256 :salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :bcrypt+sha512 :salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :scrypt :salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :sha256 :salt salt})))
-    (is (hashers/check plain-password
-                       (hashers/encrypt plain-password {:algorithm :md5 :salt salt})))))
-
+  (let [pwd "my-test-password"
+        salt "saltysalted"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd {:salt salt :algorithm alg})]
+          (hashers/check pwd result))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
 
 (deftest confirm-check-failure
-  (let [plain-password "my-test-password"
-        bad-password   "my-text-password"]
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :pbkdf2+sha1}))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256}))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :pbkdf2+sha3_256}))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :bcrypt+sha512}))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :scrypt}))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :sha256}))))
-    (is (not (hashers/check bad-password
-                            (hashers/encrypt plain-password {:algorithm :md5}))))))
-
+  (let [pwd-good "my-test-password"
+        pwd-bad "my-text-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd-good {:algorithm alg})]
+          (not (hashers/check pwd-bad result)))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
 
 (deftest buddy-hashers-nil
-  (let [plain-password "my-test-password"
-        encrypted-password (hashers/encrypt plain-password {:algorithm :pbkdf2+sha256})]
-    (is (= nil (hashers/check nil encrypted-password)))
-    (is (= nil (hashers/check plain-password nil)))
-    (is (= nil (hashers/check nil nil)))))
-
-
-;;;;
-;;;; Tests related to the resulting value's structure
-;;;;
+  (let [pwd "my-test-password"
+        result (hashers/encrypt pwd {:algorithm :pbkdf2+sha256})]
+    (is (nil? (hashers/check nil result)))
+    (is (nil? (hashers/check pwd nil)))
+    (is (nil? (hashers/check nil nil)))))
 
 (deftest algorithm-embedded-in-hash
-  ;; Confirm that the algorithm used is always embedded at the start of the hash
-  (let [plain-password "my-test-password"]
-    (are [algorithm] (.startsWith (hashers/encrypt plain-password {:algorithm algorithm}) (name algorithm))
-                     :pbkdf2+sha1
-                     :pbkdf2+sha256
-                     :pbkdf2+sha3_256
-                     :bcrypt+sha512
-                     :scrypt
-                     :sha256
-                     :md5
-                     )))
+  (let [pwd "my-test-password"]
+    (are [alg]
+        (-> (hashers/encrypt pwd {:algorithm alg})
+            (.startsWith (name alg)))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
 
+;; Confirm that the algorithm used is always embedded at the
+;; start of the hash, and that the salt is also appended (after
+;; being converted to their byte values)
 
 (deftest received-salt-embedded-in-hash
-  (let [plain-password "my-test-password"
-        salt           "abcdefgh"]
-    ;; Confirm that the algorithm used is always embedded at the start of the hash,
-    ;; and that the salt is also appended (after being converted to their byte values)
-    (are [algorithm] (.startsWith (hashers/encrypt plain-password {:algorithm algorithm :salt salt})
-                                  (str (name algorithm) "$" (-> salt str->bytes bytes->hex)))
-                     :pbkdf2+sha1
-                     :pbkdf2+sha256
-                     :pbkdf2+sha3_256
-                     :bcrypt+sha512
-                     :scrypt
-                     :sha256
-                     :md5
-                     )))
+  (let [pwd "my-test-password"
+        salt "abcdefgh"]
+    (are [alg]
+        (-> (hashers/encrypt pwd {:algorithm alg :salt salt})
+            (.startsWith (str (name alg) "$" (-> salt str->bytes bytes->hex))))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
