@@ -287,8 +287,8 @@
      (let [pwdparams (parse-password encrypted)]
        (if (and (set? limit) (not (contains? limit (:algorithm pwdparams))))
          false
-         (let [attempt (str->bytes attempt)
-               result (check-password pwdparams attempt)]
+         (let [attempt' (str->bytes attempt)
+               result (check-password pwdparams attempt')]
            (when (and result (fn? setter) (must-update? pwdparams))
              (setter attempt))
            result))))))
