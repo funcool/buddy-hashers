@@ -9,6 +9,8 @@ Date: 2015-10-31
 - Add the ability to react in case the password has weak
   configuration and rehash it again (and store fresh
   encoded password with updated stronger config).
+- Decrease the rounds for :pbkdf2-sha3_256 because
+  the previous one was too heavy.
 
 
 == Version 0.7.0
