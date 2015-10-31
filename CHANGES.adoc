@@ -1,8 +1,8 @@
 = Changelog
 
-== Version 0.7.1
+== Version 0.8.0
 
-Date: unreleased
+Date: 2015-10-31
 
 - Add the ability to limit the set of allowed algorithms
   to be used in the check process.
