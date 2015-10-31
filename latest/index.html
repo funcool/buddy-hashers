@@ -80,26 +80,30 @@
 <h1>buddy-hashers - password hashers for Clojure</h1>
 <div class="details">
 <span id="author" class="author">Andrey Antukh, &lt;niwi@niwi.nz&gt;</span><br>
-<span id="revdate">0.7.0</span>
+<span id="revdate">0.8.0</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#introduction">Introduction</a></li>
-<li><a href="#project-maturity">Project Maturity</a></li>
-<li><a href="#install">Install</a>
+<li><a href="#introduction">Introduction</a>
 <ul class="sectlevel2">
-<li><a href="#requirements">Requirements</a></li>
+<li><a href="#project-maturity">Project Maturity</a></li>
+<li><a href="#install">Install</a></li>
 <li><a href="#leiningen">Leiningen</a></li>
-<li><a href="#gradle">Gradle</a></li>
 </ul>
 </li>
-<li><a href="#quick-start">Quick Start</a></li>
-<li><a href="#advanced-options">Advanced options</a></li>
+<li><a href="#quickstart">Quick Start</a></li>
+<li><a href="#advanced-options">Advanced options</a>
+<ul class="sectlevel2">
+<li><a href="#algorithm-tunning-params">Algorithm tunning params</a></li>
+<li><a href="#limiting-algorithms">Limiting algorithms</a></li>
+<li><a href="#rehash-hook">Rehash Hook</a></li>
+</ul>
+</li>
 <li><a href="#developers-guide">Developers Guide</a>
 <ul class="sectlevel2">
-<li><a href="#contributing">Contributing</a></li>
 <li><a href="#philosophy">Philosophy</a></li>
+<li><a href="#contributing">Contributing</a></li>
 <li><a href="#get-the-code">Get the Code</a></li>
 <li><a href="#run-tests">Run tests</a></li>
 <li><a href="#license">License</a></li>
@@ -113,8 +117,9 @@
 <h2 id="introduction"><a class="link" href="#introduction">Introduction</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Buddy <strong>hashers</strong> module is dedicated to provide a collection
-of secure password hashers functions.</p>
+<p><strong>buddy-hashers</strong> provides a collection of secure password hashers
+with lightweight and extensible abstraction for build powerfull
+password authentication processes.</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <caption class="title">Table 1. Supported password hashers algorithms</caption>
@@ -168,24 +173,19 @@ of secure password hashers functions.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="sect1">
-<h2 id="project-maturity"><a class="link" href="#project-maturity">Project Maturity</a></h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="project-maturity"><a class="link" href="#project-maturity">Project Maturity</a></h3>
 <div class="paragraph">
 <p>Since <em>buddy-hashers</em> is a young project there can be some API breakage.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="install"><a class="link" href="#install">Install</a></h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="install"><a class="link" href="#install">Install</a></h3>
 <div class="paragraph">
 <p>This section covers the <em>buddy-hashers</em> library installing process and its requirements.</p>
 </div>
-<div class="sect2">
-<h3 id="requirements"><a class="link" href="#requirements">Requirements</a></h3>
+<div class="sect3">
+<h4 id="requirements"><a class="link" href="#requirements">Requirements</a></h4>
 <div class="paragraph">
 <p><em>buddy-hashers</em> is tested with these platforms:</p>
 </div>
@@ -200,54 +200,36 @@ of secure password hashers functions.</p>
 </ul>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="leiningen"><a class="link" href="#leiningen">Leiningen</a></h3>
 <div class="paragraph">
-<p>The simplest way to use <em>buddy-hashers</em> in a clojure project, is by including it in the dependency
-vector on your <strong><em>project.clj</em></strong> file:</p>
-</div>
-<div class="listingblock">
-<div class="title"><em>on project.clj</em></div>
-<div class="content">
-<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-p">[</span><span class="tok-nv">buddy/buddy-hashers</span> <span class="tok-s">&quot;0.7.0&quot;</span><span class="tok-p">]</span></code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="gradle"><a class="link" href="#gradle">Gradle</a></h3>
-<div class="paragraph">
-<p>If you are using gradle, this is a dependency line for gradle dsl:</p>
+<p>The simplest way to use <em>buddy-hashers</em> in a clojure project, is by including it in
+the dependency list on your <strong><em>project.clj</em></strong> file:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="groovy"><span class="tok-n">compile</span> <span class="tok-s2">&quot;buddy:buddy-hashers:0.7.0&quot;</span></code></pre>
+<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-p">[</span><span class="tok-nv">buddy/buddy-hashers</span> <span class="tok-s">&quot;0.8.0&quot;</span><span class="tok-p">]</span></code></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="quick-start"><a class="link" href="#quick-start">Quick Start</a></h2>
+<h2 id="quickstart"><a class="link" href="#quickstart">Quick Start</a></h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Hashers module consists in two public functions: <strong>encrypt</strong> and <strong>check</strong> and both them are
-located on <code>buddy.hashers</code> namespace.</p>
+<p>Hashers module consists in two public functions: <strong>encrypt</strong> and <strong>check</strong> and both
+them are located on <code>buddy.hashers</code> namespace.</p>
 </div>
 <div class="paragraph">
-<p>For start using it, just import it on your namespace:</p>
+<p>Let start encrypting a password:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-p">(</span><span class="tok-kd">ns </span><span class="tok-nv">my.app</span>
-  <span class="tok-p">(</span><span class="tok-ss">:require</span> <span class="tok-p">[</span><span class="tok-nv">buddy.hashers</span> <span class="tok-ss">:as</span> <span class="tok-nv">hashers</span><span class="tok-p">]))</span></code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now, choice the algorithm and encrypt your passwords:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-c1">;; Generate hash from plain password</span>
+<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-p">(</span><span class="tok-nf">require</span> <span class="tok-o">&#39;</span><span class="tok-p">[</span><span class="tok-nv">buddy.hashers</span> <span class="tok-ss">:as</span> <span class="tok-nv">hashers</span><span class="tok-p">])</span>
+
+<span class="tok-c1">;; Generate hash from plain password</span>
 <span class="tok-p">(</span><span class="tok-nf">hashers/encrypt</span> <span class="tok-s">&quot;secretpassword&quot;</span><span class="tok-p">))</span>
 <span class="tok-c1">;; =&gt; &quot;bcrypt+sha512$4i9sd34m...&quot;</span>
 
@@ -269,24 +251,13 @@ specify it using the the second parameter to <strong>encrypt</strong> function:<
 <span class="tok-c1">;; =&gt; true</span></code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-hasher functions, unlike cryptographic hash functions, expect strings instead
-of bytes.
-</td>
-</tr>
-</table>
-</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="advanced-options"><a class="link" href="#advanced-options">Advanced options</a></h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="algorithm-tunning-params"><a class="link" href="#algorithm-tunning-params">Algorithm tunning params</a></h3>
 <div class="paragraph">
 <p>Each algorithm can be tweaked passing additional parameters on the second argument
 to <strong>encrypt</strong> function. And options vary depending on the used algorithm.</p>
@@ -344,17 +315,57 @@ to <strong>encrypt</strong> function. And options vary depending on the used alg
 </tbody>
 </table>
 </div>
+<div class="sect2">
+<h3 id="limiting-algorithms"><a class="link" href="#limiting-algorithms">Limiting algorithms</a></h3>
+<div class="paragraph">
+<p>Some times you don&#8217;t want to use all the supported algorithms and you only want
+to use a own set of algorithms in the password check process. That can be done
+passing additional parameter to the <code>check</code> function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-p">(</span><span class="tok-k">def </span><span class="tok-nv">trusted-algs</span> <span class="tok-o">#</span><span class="tok-p">{</span><span class="tok-ss">:pbkdf2+sha256</span> <span class="tok-ss">:bcrypt+sha512</span><span class="tok-p">})</span>
+
+<span class="tok-p">(</span><span class="tok-nf">hashers/check</span> <span class="tok-nv">incoming-pwd</span> <span class="tok-nv">encrypted-pwd</span> <span class="tok-p">{</span><span class="tok-ss">:limit</span> <span class="tok-nv">trusted-algs</span><span class="tok-p">})</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>check</code> function will return false if the incoming password uses an algorithm
+that does not allowed.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="rehash-hook"><a class="link" href="#rehash-hook">Rehash Hook</a></h3>
+<div class="paragraph">
+<p>When time passes, the password hashers config is constantly updated for to be
+aligned with the latest security standards but you have a big database with users
+that are using password with now weak password configuration.</p>
+</div>
+<div class="paragraph">
+<p><strong>buddy-hashers</strong> comes with a solution for it. It consists in a hook for password
+check process that if the password is correctly verified and is detected that has
+weak configuration, will be called with the plain password. That process allows
+to be reactive and update the users password (when the user does login as example)
+along hashers configuration is changed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="clojure"><span class="tok-p">(</span><span class="tok-nf">letfn</span> <span class="tok-p">[(</span><span class="tok-nf">setter</span> <span class="tok-p">[</span><span class="tok-nv">pwd</span><span class="tok-p">]</span>
+          <span class="tok-p">(</span><span class="tok-k">let </span><span class="tok-p">[</span><span class="tok-nv">pwd</span> <span class="tok-p">(</span><span class="tok-nf">hashers/encrypt</span> <span class="tok-nv">pwd</span><span class="tok-p">)]</span>
+            <span class="tok-p">(</span><span class="tok-nf">do-the-db-update</span> <span class="tok-nv">pwd</span><span class="tok-p">)))]</span>
+  <span class="tok-p">(</span><span class="tok-nf">hashers/check</span> <span class="tok-nv">incoming-pwd</span> <span class="tok-nv">encrypted-pwd</span> <span class="tok-p">{</span><span class="tok-ss">:setter</span> <span class="tok-nv">setter</span><span class="tok-p">}))</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The setter will be called when the incoming password is valid but its config
+is weaker that the current default one.</p>
+</div>
+</div>
+</div>
 </div>
 <div class="sect1">
 <h2 id="developers-guide"><a class="link" href="#developers-guide">Developers Guide</a></h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="contributing"><a class="link" href="#contributing">Contributing</a></h3>
-<div class="paragraph">
-<p>Unlike Clojure and other Clojure contributed libraries <em>buddy-hashers</em> does not have many
-restrictions for contributions. Just open an issue or pull request.</p>
-</div>
-</div>
 <div class="sect2">
 <h3 id="philosophy"><a class="link" href="#philosophy">Philosophy</a></h3>
 <div class="paragraph">
@@ -384,9 +395,17 @@ restrictions for contributions. Just open an issue or pull request.</p>
 </div>
 </div>
 <div class="sect2">
+<h3 id="contributing"><a class="link" href="#contributing">Contributing</a></h3>
+<div class="paragraph">
+<p>Unlike Clojure and other Clojure contributed libraries <em>buddy-hashers</em> does not
+have many restrictions for contributions. Just open an issue or pull request.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="get-the-code"><a class="link" href="#get-the-code">Get the Code</a></h3>
 <div class="paragraph">
-<p><em>buddy-hashers</em> is open source and can be found on <a href="https://github.com/funcool/buddy-hashers">github</a>.</p>
+<p><em>buddy-hashers</em> is open source and can be found on
+<a href="https://github.com/funcool/buddy-hashers">github</a>.</p>
 </div>
 <div class="paragraph">
 <p>You can clone the public repository with this command:</p>
@@ -420,7 +439,7 @@ of the license on the root of the repository on <code>LICENSE</code> file.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-09-19 12:01:40 EEST
+Last updated 2015-10-31 16:51:02 EET
 </div>
 </div>
 </body>
