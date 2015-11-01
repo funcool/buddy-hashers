@@ -130,15 +130,16 @@ that does not allowed.
 
 === Rehash Hook
 
-When time passes, the password hashers config is constantly updated for to be
-aligned with the latest security standards but you have a big database with users
-that are using password with now weak password configuration.
 
-*buddy-hashers* comes with a solution for it. It consists in a hook for password
-check process that if the password is correctly verified and is detected that has
-weak configuration, will be called with the plain password. That process allows
-to be reactive and update the users password (when the user does login as example)
-along hashers configuration is changed.
+Choice a strong algorithm is important thing, but have a good update
+password-hashes policy is also very important and usually completelly forgotten.
+The password generated 3 years ago is weaker that one generated today...
+
+*buddy-hashers* comes with a solution for make this task easier. It consists in
+a setter hook that will be called when weaker password is detected, enabling for
+you the entry point for rehash the password and store it again to the database.
+
+It there is an example on how it can be used:
 
 [source, clojure]
 ----
