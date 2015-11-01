@@ -337,16 +337,17 @@ that does not allowed.</p>
 <div class="sect2">
 <h3 id="rehash-hook"><a class="link" href="#rehash-hook">Rehash Hook</a></h3>
 <div class="paragraph">
-<p>When time passes, the password hashers config is constantly updated for to be
-aligned with the latest security standards but you have a big database with users
-that are using password with now weak password configuration.</p>
+<p>Choice a strong algorithm is important thing, but have a good update
+password-hashes policy is also very important and usually completelly forgotten.
+The password generated 3 years ago is weaker that one generated today&#8230;&#8203;</p>
 </div>
 <div class="paragraph">
-<p><strong>buddy-hashers</strong> comes with a solution for it. It consists in a hook for password
-check process that if the password is correctly verified and is detected that has
-weak configuration, will be called with the plain password. That process allows
-to be reactive and update the users password (when the user does login as example)
-along hashers configuration is changed.</p>
+<p><strong>buddy-hashers</strong> comes with a solution for make this task easier. It consists in
+a setter hook that will be called when weaker password is detected, enabling for
+you the entry point for rehash the password and store it again to the database.</p>
+</div>
+<div class="paragraph">
+<p>It there is an example on how it can be used:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -439,7 +440,7 @@ of the license on the root of the repository on <code>LICENSE</code> file.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-10-31 16:51:02 EET
+Last updated 2015-11-01 10:23:39 EET
 </div>
 </div>
 </body>
