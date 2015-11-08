@@ -125,7 +125,7 @@
   [options]
   (derive-password (assoc options :alg :pbkdf2 :digest :sha3-256)))
 
-;; WARNING: this is an alias for :pbkdf2+sha3-256 and should be consdered
+;; DEPRECATED: this is an alias for :pbkdf2+sha3-256 and should be consdered
 ;; deprecated. It will be removed in the next version.
 
 (defmethod derive-password :pbkdf2+sha3_256

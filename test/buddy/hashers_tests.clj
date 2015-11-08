@@ -69,6 +69,7 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha3_256
+      :pbkdf2+sha3-256
       :bcrypt+sha512
       :bcrypt+sha384
       :scrypt
@@ -90,6 +91,7 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha3_256
+      :pbkdf2+sha3-256
       :bcrypt+sha512
       :bcrypt+sha384
       :scrypt
@@ -109,6 +111,7 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha3_256
+      :pbkdf2+sha3-256
       :bcrypt+sha512
       :bcrypt+sha384
       :scrypt
@@ -133,6 +136,7 @@
         pbkdf2+sha256b "pbkdf2+sha256b$7d0994313982465d82372493$100000$98c4b3043b30622917516e97d1c6bd9936337e8c"
         pbkdf2+sha256 "pbkdf2+sha256$d4043ce1e9e1f9eb9a198b54$100000$71526da5155651ed0eea37d13f728e802c54cf2a3e205b0dbbbfd1f2f169d5a3"
         pbkdf2+sha3_256 "pbkdf2+sha3_256$1278c96b4e68b98c633041dc$5000$d89f67636fec62cdd8379f8ff9305bece38f09b20659916d41cf91eacd91a85b"
+        pbkdf2+sha3-256 "pbkdf2+sha3-256$1278c96b4e68b98c633041dc$5000$d89f67636fec62cdd8379f8ff9305bece38f09b20659916d41cf91eacd91a85b"
         scrypt "scrypt$f54d4b5a1e8d8e63c82e1553$65536$8$1$24733024313030383031246850416d5378645243726664336350546b5a4c7330413d3d243448376945454c47395155492f2b477a42735a582f76554f3345495248656c6939734a73516c356e6571413d"
         sha256 "sha256$bbac53106f8ce4f8c2d78f86$2182339b43ed1546b21488922c2516b64917025084577b33fc49357d9dd2c673"
         bcrypt+sha512 "bcrypt+sha512$680bf9ad0bf9f8249bfebb85$12$243261243132244b4e2e4e456650704558323964686e6c64644f4b73656a6879584f635a4f6b7778596132475036772e6c2e784f49596631556f7679"
@@ -141,6 +145,7 @@
     (is (hashers/check "test" pbkdf2+sha256b))
     (is (hashers/check "test" pbkdf2+sha256))
     (is (hashers/check "test" pbkdf2+sha3_256))
+    (is (hashers/check "test" pbkdf2+sha3-256))
     (is (hashers/check "test" scrypt))
     (is (hashers/check "test" sha256))
     (is (hashers/check "test" bcrypt+sha512))
@@ -157,6 +162,7 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha3_256
+      :pbkdf2+sha3-256
       :bcrypt+sha512
       :bcrypt+sha384
       :scrypt
