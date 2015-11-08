@@ -199,6 +199,8 @@
 ;; Key Verification
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; DEPRECATED: see note on derive-password
+
 (defmethod check-password :bcrypt+sha512
   [pwdparams attempt]
   (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
