@@ -23,6 +23,7 @@
            org.bouncycastle.crypto.digests.SHA256Digest
            org.bouncycastle.crypto.digests.SHA3Digest
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
+           java.security.Security
            buddy.impl.bcrypt.BCrypt))
 
 (when (nil? (Security/getProvider "BC"))
