@@ -25,8 +25,8 @@
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
            buddy.impl.bcrypt.BCrypt))
 
-(java.security.Security/addProvider
- (org.bouncycastle.jce.provider.BouncyCastleProvider.))
+(when (nil? (Security/getProvider "BC"))
+  (Security/addProvider (org.bouncycastle.jce.provider.BouncyCastleProvider.)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
