@@ -39,6 +39,7 @@
    :pbkdf2+sha3_256 5000
    :pbkdf2+sha3-256 5000
    :bcrypt+sha512 12
+   :bcrypt+sha384 12
    :scrypt {:cpucost 65536
             :memcost 8}})
 
@@ -139,10 +140,10 @@
      :salt salt
      :iterations iterations}))
 
-;; NOTE: this impl hash the problem of the sha512 truncation to the 256 bits.
-;; It is not very big problem in terms of security or collision because
-;; sha256 is still secure and colision resistant. But is now deprecated
-;; bacause it does not works as expected.
+;; DEPRECATED: this impl hash the problem of the sha512 truncation to
+;; the 256 bits. It is not very big problem in terms of security or
+;; collision because sha256 is still secure and colision resistant.
+;; But is now deprecated bacause it does not works as expected.
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations] :as pwdparams}]
@@ -153,6 +154,22 @@
                 (bytes/concat salt)
                 (hash/sha512)
                 (bytes->hex)
+                (BCrypt/hashpw iv)
+                (str->bytes))]
+    {:alg alg
+     :iterations iterations
+     :salt salt
+     :password pwd}))
+
+(defmethod derive-password :bcrypt+sha384
+  [{:keys [alg password salt iterations] :as pwdparams}]
+  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+        iterations (or iterations (get *default-iterations* alg))
+        iv (BCrypt/gensalt iterations)
+        pwd (-> password
+                (bytes/concat salt)
+                (hash/sha384)
+                (bytes->base64)
                 (BCrypt/hashpw iv)
                 (str->bytes))]
     {:alg alg
@@ -206,6 +223,13 @@
   (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
                       (hash/sha512))]
     (BCrypt/checkpw (bytes->hex candidate)
+                    (bytes->str (:password pwdparams)))))
+
+(defmethod check-password :bcrypt+sha384
+  [pwdparams attempt]
+  (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
+                      (hash/sha384))]
+    (BCrypt/checkpw (bytes->base64 candidate)
                     (bytes->str (:password pwdparams)))))
 
 (defmethod check-password :scrypt
@@ -313,7 +337,7 @@
   ([password options]
    (let [alg (or (:algorithm options nil)
                  (:alg options)
-                 :bcrypt+sha512)
+                 :bcrypt+sha384)
          pwdparams (assoc options
                           :alg alg
                           :password (str->bytes password))]
