@@ -6,18 +6,18 @@ Date: unreleased
 
 Important notes:
 
-- The `bcrypt+sha386` algorithm is becomes the new default password hasher. <br />
+- The `bcrypt+sha384` algorithm is becomes the new default password hasher.
   The previous `bcrypt+sha512` is still available but is deprecated because
   of hash truncation. It does not has security implications because the
   standard way to use bcrypt is combining with 256 bit hash and the impl in
   buddy was ussing 512 bit hash truncated to 256bits. The new implementation
-  does not uses any explicit hash truncation.<br />
+  does not uses any explicit hash truncation.
   Among that, is still recommeded upgrade your passwords to the new hash
   algorithm using the provided way to gradual password upgrading.
-- Fixed wrong output digest size in `pbkdf2+sha256`. <br />
+- Fixed wrong output digest size in `pbkdf2+sha256`.
   This is a breaking change, so if you are using this hasher you should update
   your database replacing the `pbkdf2+sha256$` prefix on the password field with
-  `pbkdf2+sha256b$` if you want continue validating properly that passwords. <br />
+  `pbkdf2+sha256b$` if you want continue validating properly that passwords.
   The security implications of this bug is that the old implementation of
   `pbkdf2+sha256` has truncation of digest size to 160 bits, and it means that
   the security is decreased to be at least as in `pbkdf2+sha1`. The last one
