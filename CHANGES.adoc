@@ -29,6 +29,7 @@ Other changes:
   compatible change because the previous alias is still conserved.
 - The `md5` and `sha256` hashers has been deprecated and will be removed in the
   next version.
+- The `:algorithm` parameter is deprecated in favor of the shorter `:alg`.
 
 
 == Version 0.8.0
