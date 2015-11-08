@@ -30,6 +30,19 @@
       :sha256
       :md5)))
 
+(deftest buddy-hashers
+  (let [pwd "my-test-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd {:alg alg})]
+          (hashers/check pwd result))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha3_256
+      :bcrypt+sha512
+      :scrypt
+      :sha256
+      :md5)))
+
 (deftest buddy-hashers-with-salt
   (let [pwd "my-test-password"
         salt "saltysalted"]
