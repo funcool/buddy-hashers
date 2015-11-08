@@ -3,7 +3,7 @@ sudo: false
 lein: lein
 
 script:
-  - lein test
+  - lein test-all
 
 jdk:
   - oraclejdk8
