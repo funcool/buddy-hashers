@@ -138,6 +138,11 @@
      :salt salt
      :iterations iterations}))
 
+;; NOTE: this impl hash the problem of the sha512 truncation to the 256 bits.
+;; It is not very big problem in terms of security or collision because
+;; sha256 is still secure and colision resistant. But is now deprecated
+;; bacause it does not works as expected.
+
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
