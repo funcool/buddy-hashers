@@ -36,6 +36,7 @@
   {:pbkdf2+sha1 100000
    :pbkdf2+sha256 100000
    :pbkdf2+sha3_256 5000
+   :pbkdf2+sha3-256 5000
    :bcrypt+sha512 12
    :scrypt {:cpucost 65536
             :memcost 8}})
@@ -55,9 +56,6 @@
 (defn- dispatch
   [opts & args]
   (:alg opts))
-  ;; (let [alg1 (:algorithm opts)
-  ;;       alg2 (:alg opts)]
-  ;;   (or alg2 alg1)))
 
 (defmulti derive-password
   "Derive key depending on algorithm."
@@ -80,19 +78,32 @@
 ;; Key Derivation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod derive-password :pbkdf2+sha1
-  [{:keys [alg password salt iterations] :as pwdparams}]
+(defmethod derive-password :pbkdf2
+  [{:keys [alg password salt iterations digest] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+        alg (keyword (str "pbkdf2+" (name digest)))
         iterations (or iterations (get *default-iterations* alg))
-        pgen (doto (PKCS5S2ParametersGenerator. (SHA1Digest.))
+        digest (hash/resolve-digest-engine digest)
+        dsize (* 8 (.getDigestSize digest))
+        pgen (doto (PKCS5S2ParametersGenerator. digest)
                (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen 160))]
+        password (.getKey (.generateDerivedParameters pgen dsize))]
     {:alg alg
      :password password
      :salt salt
      :iterations iterations}))
 
-(defmethod derive-password :pbkdf2+sha256
+(defmethod derive-password :pbkdf2+sha1
+  [options]
+  (derive-password (assoc options :alg :pbkdf2 :digest :sha1)))
+
+;; NOTE: this is a special case for the previous impl that
+;; uses weaker configuration that it should be. This weaker
+;; impl implies the same security as :pbkdf2+sha1 with stronger
+;; hasher implementation truncated to 160 bytes. It menans that
+;; it at least secure as :pbkdf2+sha1 that is considered secure.
+
+(defmethod derive-password :pbkdf2+sha256b
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* alg))
@@ -103,6 +114,17 @@
      :password password
      :salt salt
      :iterations iterations}))
+
+(defmethod derive-password :pbkdf2+sha256
+  [options]
+  (derive-password (assoc options :alg :pbkdf2 :digest :sha256)))
+
+(defmethod derive-password :pbkdf2+sha3-256
+  [options]
+  (derive-password (assoc options :alg :pbkdf2 :digest :sha3-256)))
+
+;; WARNING: this is an alias for :pbkdf2+sha3-256 and should be consdered
+;; deprecated. It will be removed in the next version.
 
 (defmethod derive-password :pbkdf2+sha3_256
   [{:keys [alg password salt iterations] :as pwdparams}]
