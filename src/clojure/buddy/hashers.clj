@@ -52,67 +52,74 @@
         (first)
         (keyword))))
 
+(defn- dispatch
+  [opts & args]
+  (:alg opts))
+  ;; (let [alg1 (:algorithm opts)
+  ;;       alg2 (:alg opts)]
+  ;;   (or alg2 alg1)))
+
 (defmulti derive-password
   "Derive key depending on algorithm."
-  :algorithm)
+  dispatch)
 
 (defmulti check-password
   "Password verification implementation."
-  :algorithm)
+  dispatch)
 
 (defmulti format-password
   "Format password depending on algorithm."
-  :algorithm)
+  dispatch)
 
 (defmulti must-update?
   "Check if the current password configuration
   is succeptible to be updatable."
-  :algorithm)
+  dispatch)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Derivation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod derive-password :pbkdf2+sha1
-  [{:keys [algorithm password salt iterations] :as pwdparams}]
+  [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* algorithm))
+        iterations (or iterations (get *default-iterations* alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA1Digest.))
                (.init password salt iterations))
         password (.getKey (.generateDerivedParameters pgen 160))]
-    {:algorithm algorithm
+    {:alg alg
      :password password
      :salt salt
      :iterations iterations}))
 
 (defmethod derive-password :pbkdf2+sha256
-  [{:keys [algorithm password salt iterations] :as pwdparams}]
+  [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* algorithm))
+        iterations (or iterations (get *default-iterations* alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
                (.init password salt iterations))
         password (.getKey (.generateDerivedParameters pgen 160))]
-    {:algorithm algorithm
+    {:alg alg
      :password password
      :salt salt
      :iterations iterations}))
 
 (defmethod derive-password :pbkdf2+sha3_256
-  [{:keys [algorithm password salt iterations] :as pwdparams}]
+  [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* algorithm))
+        iterations (or iterations (get *default-iterations* alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA3Digest. 256))
                (.init password salt iterations))
         password (.getKey (.generateDerivedParameters pgen 256))]
-    {:algorithm algorithm
+    {:alg alg
      :password password
      :salt salt
      :iterations iterations}))
 
 (defmethod derive-password :bcrypt+sha512
-  [{:keys [algorithm password salt iterations] :as pwdparams}]
+  [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* algorithm))
+        iterations (or iterations (get *default-iterations* alg))
         iv (BCrypt/gensalt iterations)
         pwd (-> password
                 (bytes/concat salt)
@@ -120,13 +127,13 @@
                 (bytes->hex)
                 (BCrypt/hashpw iv)
                 (str->bytes))]
-    {:algorithm algorithm
+    {:alg alg
      :iterations iterations
      :salt salt
      :password pwd}))
 
 (defmethod derive-password :scrypt
-  [{:keys [algorithm password salt cpucost memcost parallelism] :as pwdparams}]
+  [{:keys [alg password salt cpucost memcost parallelism] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         cpucost (or cpucost (get-in *default-iterations* [:scrypt :cpucost]))
         memcost (or memcost (get-in *default-iterations* [:scrypt :memcost]))
@@ -135,7 +142,7 @@
                      (bytes->hex)
                      (scrypt/encrypt cpucost memcost parallelism)
                      (str->bytes))]
-    {:algorithm algorithm
+    {:alg alg
      :cpucost cpucost
      :memcost memcost
      :parallelism parallelism
@@ -143,20 +150,20 @@
      :salt salt}))
 
 (defmethod derive-password :sha256
-  [{:keys [algorithm password salt] :as pwdparams}]
+  [{:keys [alg password salt] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         password (-> (bytes/concat password salt)
                      (hash/sha256))]
-    {:algorithm :sha256
+    {:alg :sha256
      :password password
      :salt salt}))
 
 (defmethod derive-password :md5
-  [{:keys [algorithm password salt] :as pwdparams}]
+  [{:keys [alg password salt] :as pwdparams}]
   (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
         password (-> (bytes/concat password salt)
                      (hash/md5))]
-    {:algorithm :md5
+    {:alg :md5
      :password password
      :salt salt}))
 
@@ -196,13 +203,13 @@
     (format "scrypt$%s$%s$%s$%s$%s" salt cpucost memcost parallelism password)))
 
 (defmethod format-password :default
-  [{:keys [algorithm password salt iterations]}]
-  (let [algorithmname (name algorithm)
+  [{:keys [alg password salt iterations]}]
+  (let [algname (name alg)
         salt (bytes->hex salt)
         password (bytes->hex password)]
     (if (nil? iterations)
-      (format "%s$%s$%s" algorithmname salt password)
-      (format "%s$%s$%s$%s" algorithmname salt iterations password))))
+      (format "%s$%s$%s" algname salt password)
+      (format "%s$%s$%s$%s" algname salt iterations password))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Parsing
@@ -210,9 +217,9 @@
 
 (defmethod parse-password :scrypt
   [encryptedpassword]
-  (let [[algorithm salt cc mc pll password] (str/split encryptedpassword #"\$")
-        algorithm (keyword algorithm)]
-    {:algorithm algorithm
+  (let [[alg salt cc mc pll password] (str/split encryptedpassword #"\$")
+        alg (keyword alg)]
+    {:alg alg
      :salt (hex->bytes salt)
      :password (hex->bytes password)
      :cpucost (Integer/parseInt cc)
@@ -221,25 +228,25 @@
 
 (defmethod parse-password :sha256
   [encryptedpassword]
-  (let [[algorithm salt password] (str/split encryptedpassword #"\$")
-        algorithm (keyword algorithm)]
-    {:algorithm algorithm
+  (let [[alg salt password] (str/split encryptedpassword #"\$")
+        alg (keyword alg)]
+    {:alg alg
      :salt (hex->bytes salt)
      :password (hex->bytes password)}))
 
 (defmethod parse-password :md5
   [encryptedpassword]
-  (let [[algorithm salt password] (str/split encryptedpassword #"\$")
-        algorithm (keyword algorithm)]
-    {:algorithm algorithm
+  (let [[alg salt password] (str/split encryptedpassword #"\$")
+        alg (keyword alg)]
+    {:alg alg
      :salt (hex->bytes salt)
      :password (hex->bytes password)}))
 
 (defmethod parse-password :default
   [encryptedpassword]
-  (let [[algorithm salt iterations password] (str/split encryptedpassword #"\$")
-        algorithm (keyword algorithm)]
-    {:algorithm algorithm
+  (let [[alg salt iterations password] (str/split encryptedpassword #"\$")
+        alg (keyword alg)]
+    {:alg alg
      :salt (hex->bytes salt)
      :password (hex->bytes password)
      :iterations (Integer/parseInt iterations)}))
@@ -249,12 +256,16 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod must-update? :default
-  [{:keys [algorithm iterations]}]
-  (let [desired-iterations (get *default-iterations* algorithm)]
+  [{:keys [alg iterations]}]
+  (let [desired-iterations (get *default-iterations* alg)]
     (and desired-iterations (> desired-iterations iterations))))
 
+(defmethod must-update? :bcrypt+sha512
+  [{:keys [alg iterations]}]
+  true)
+
 (defmethod must-update? :scrypt
-  [{:keys [algorithm memcost cpucost]}]
+  [{:keys [alg memcost cpucost]}]
   (let [desired-memcost (get-in *default-iterations* [:scrypt :memcost])
         desired-cpucost (get-in *default-iterations* [:scrypt :cpucost])]
     (and desired-cpucost
@@ -270,9 +281,11 @@
   "Encrypts a raw string password."
   ([password] (encrypt password {}))
   ([password options]
-   (let [algorithm (:algorithm options :bcrypt+sha512)
+   (let [alg (or (:algorithm options nil)
+                 (:alg options)
+                 :bcrypt+sha512)
          pwdparams (assoc options
-                          :algorithm algorithm
+                          :alg alg
                           :password (str->bytes password))]
      (-> (derive-password pwdparams)
          (format-password)))))
@@ -285,7 +298,7 @@
   ([attempt encrypted {:keys [limit setter prefered]}]
    (when (and attempt encrypted)
      (let [pwdparams (parse-password encrypted)]
-       (if (and (set? limit) (not (contains? limit (:algorithm pwdparams))))
+       (if (and (set? limit) (not (contains? limit (:alg pwdparams))))
          false
          (let [attempt' (str->bytes attempt)
                result (check-password pwdparams attempt')]
