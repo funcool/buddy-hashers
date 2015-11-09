@@ -130,46 +130,56 @@ password authentication processes.</p>
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-center valign-top">Identifier</th>
-<th class="tableblock halign-center valign-top">Should I use it?</th>
-<th class="tableblock halign-center valign-top">Description</th>
+<th class="tableblock halign-left valign-top">Identifier</th>
+<th class="tableblock halign-left valign-top">Can I use it?</th>
+<th class="tableblock halign-left valign-top">Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:bcrypt+sha512</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Recommended</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">BCrypt password hasher combined with sha512 (due to 75 chars password limitation of bcrypt)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:bcrypt+blake2b-512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BCrypt password hasher combined with blake2b-512</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:pbkdf2+sha256</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Recommended</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 with SHA256</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+blake2b-512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 with blake2b-512</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:pbkdf2+sha3_256</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 with SHA3 256bit</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 with SHA256</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:pbkdf2+sha1</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 (as defined in RFC2898)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha3-256</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 with SHA3-256</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:scrypt</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Yes</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Password-Based Key Derivation Function created by Colin Percival</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:bcrypt+sha512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recommended</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BCrypt password hasher combined with sha512 (see release notes for more information about that).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:sha256</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Simple hash based password hasher that uses sha256.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha256</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 with SHA256</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:md5</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">No</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">Simple hash based password hasher that uses md5.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:bcrypt+sha384</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BCrypt password hasher combined with sha384</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha1</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Password-Based Key Derivation Function 2 (as defined in RFC2898)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:scrypt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Password-Based Key Derivation Function created by Colin Percival</p></td>
 </tr>
 </tbody>
 </table>
@@ -231,20 +241,21 @@ them are located on <code>buddy.hashers</code> namespace.</p>
 
 <span class="tok-c1">;; Generate hash from plain password</span>
 <span class="tok-p">(</span><span class="tok-nf">hashers/encrypt</span> <span class="tok-s">&quot;secretpassword&quot;</span><span class="tok-p">))</span>
-<span class="tok-c1">;; =&gt; &quot;bcrypt+sha512$4i9sd34m...&quot;</span>
+<span class="tok-c1">;; =&gt; &quot;bcrypt+blake2b-512$4i9sd34m...&quot;</span>
 
-<span class="tok-p">(</span><span class="tok-nf">hashers/check</span> <span class="tok-s">&quot;secretpassword&quot;</span> <span class="tok-s">&quot;bcrypt+sha512$4i9sd34m...&quot;</span><span class="tok-p">))</span>
+<span class="tok-p">(</span><span class="tok-nf">hashers/check</span> <span class="tok-s">&quot;secretpassword&quot;</span> <span class="tok-s">&quot;bcrypt+blake2b-512$4i9sd34m...&quot;</span><span class="tok-p">))</span>
 <span class="tok-c1">;; =&gt; true</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The <code>:bcrypt+sha512</code> is a default algorithm, but if you want other, you can
-specify it using the the second parameter to <strong>encrypt</strong> function:</p>
+<p>If no algorithm is specified, a random one will be choiced from a recommeded
+to use algorithms list. If you want to use a specific one, you can specify
+it using the optional options parameter:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="pygments highlight"><code data-lang="clojure"><span class="tok-c1">;; Generate hash from plain password</span>
-<span class="tok-p">(</span><span class="tok-nf">hashers/encrypt</span> <span class="tok-s">&quot;secretpassword&quot;</span> <span class="tok-p">{</span><span class="tok-ss">:algorithm</span> <span class="tok-ss">:pbkdf2+sha256</span><span class="tok-p">))</span>
+<span class="tok-p">(</span><span class="tok-nf">hashers/encrypt</span> <span class="tok-s">&quot;secretpassword&quot;</span> <span class="tok-p">{</span><span class="tok-ss">:alg</span> <span class="tok-ss">:pbkdf2+sha256</span><span class="tok-p">))</span>
 <span class="tok-c1">;; =&gt; &quot;pbkdf2+sha256$4i9sd34m...&quot;</span>
 
 <span class="tok-p">(</span><span class="tok-nf">hashers/check</span> <span class="tok-s">&quot;secretpassword&quot;</span> <span class="tok-s">&quot;pbkdf2+sha256$4i9sd34m...&quot;</span><span class="tok-p">))</span>
@@ -265,52 +276,62 @@ to <strong>encrypt</strong> function. And options vary depending on the used alg
 <table class="tableblock frame-all grid-all spread">
 <caption class="title">Table 2. Table that deails available options and their defaults</caption>
 <colgroup>
-<col style="width: 12%;">
-<col style="width: 37%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 <col style="width: 50%;">
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-center valign-top">Algorithm</th>
-<th class="tableblock halign-center valign-top">Available options</th>
-<th class="tableblock halign-center valign-top">Defaults</th>
+<th class="tableblock halign-left valign-top">Algorithm</th>
+<th class="tableblock halign-left valign-top">Available options</th>
+<th class="tableblock halign-left valign-top">Defaults</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:bcrypt+sha512</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">iterations=12, salt=random</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:bcrypt+blake2b-512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=12, salt=(random 16 bytes)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:pbkdf2+sha256</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">iterations=100000, salt=random</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:bcrypt+sha384</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=12, salt=(random 16 bytes)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:pbkdf2+sha3_256</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">iterations=100000, salt=random</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+blake2b-512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=50000, salt=(random 12 bytes)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:pbkdf2+sha1</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">iterations=100000, salt=random</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=100000, salt=(random 12 bytes)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:scrypt</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code>, <code>:cpucost</code>, <code>:memcost</code>, <code>:parallelism</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">salt=random, cpucost=65536, memcost=8, parallelism=1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha3_256</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=100000, salt=(random 12 bytes)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:sha256</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">salt=random</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha1</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=100000, salt=(random 12 bytes)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:md5</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock"><code>:salt</code></p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">salt=random</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:scrypt</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:cpucost</code>, <code>:memcost</code>, <code>:parallelism</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">salt=(random 12 bytes), cpucost=65536, memcost=8, parallelism=1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:bcrypt+sha512</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=12, salt=(random 12 bytes)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:pbkdf2+sha256</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>:salt</code>, <code>:iterations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterations=100000, salt=(random 12 bytes)</p></td>
 </tr>
 </tbody>
 </table>
@@ -440,7 +461,7 @@ of the license on the root of the repository on <code>LICENSE</code> file.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-11-01 10:23:39 EET
+Last updated 2015-11-09 14:43:09 EET
 </div>
 </div>
 </body>
