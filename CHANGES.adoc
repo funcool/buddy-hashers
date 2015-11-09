@@ -6,12 +6,13 @@ Date: unreleased
 
 Important notes:
 
-- The `bcrypt+sha384` algorithm is becomes the new default password hasher.
+- The `bcrypt+blake2b-512` algorithm is becomes the new default password hasher.
   The previous `bcrypt+sha512` is still available but is deprecated because
   of hash truncation. It does not has security implications because the
   standard way to use bcrypt is combining with 256 bit hash and the impl in
   buddy was ussing 512 bit hash truncated to 256bits. The new implementation
-  does not uses any explicit hash truncation.
+  does not uses any explicit hash truncation and uses BC bcrypt implementation
+  instead one from jBCrypt.
   Among that, is still recommeded upgrade your passwords to the new hash
   algorithm using the provided way to gradual password upgrading.
 - Fixed wrong output digest size in `pbkdf2+sha256`.
@@ -30,6 +31,7 @@ Other changes:
 - The `md5` and `sha256` hashers has been deprecated and will be removed in the
   next version.
 - Add `:pbkdf2+blake2b-512` hasher as part of the recommended password hashers.
+- Add `:bcrypt+sha384` hasher (for some one that does not like use blake2b-512).
 - The `:algorithm` parameter is deprecated in favor of the shorter `:alg`.
 
 
