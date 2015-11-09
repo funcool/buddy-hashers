@@ -2,7 +2,7 @@
 
 == Version 0.9.0
 
-Date: unreleased
+Date: 2015-11-09
 
 Important notes:
 
