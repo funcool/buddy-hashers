@@ -44,6 +44,13 @@
    :scrypt {:cpucost 65536
             :memcost 8}})
 
+(def ^:no-doc ^:static
+  +recommended-algorithms+
+  [:pbkdf2+sha3-256
+   :pbkdf2+sha512
+   :pbkdf2+blake2b-512
+   :bcrypt+blake2b-512])
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Impl Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -358,7 +365,7 @@
   ([password options]
    (let [alg (or (:algorithm options nil)
                  (:alg options)
-                 :bcrypt+sha384)
+                 (rand-nth +recommended-algorithms+))
          pwdparams (assoc options
                           :alg alg
                           :password (codecs/str->bytes password))]
