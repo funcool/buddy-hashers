@@ -34,7 +34,8 @@
 ;; Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:dynamic *default-iterations*
+(def ^:no-doc ^:static
+  +iterations+
   {:pbkdf2+sha1 100000
    :pbkdf2+sha256 100000
    :pbkdf2+blake2b-512 50000
@@ -87,7 +88,7 @@
   [{:keys [alg password salt iterations digest] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         alg (keyword (str "pbkdf2+" (name digest)))
-        iterations (or iterations (get *default-iterations* alg))
+        iterations (or iterations (get +iterations+ alg))
         digest (hash/resolve-digest-engine digest)
         dsize (* 8 (.getDigestSize digest))
         pgen (doto (PKCS5S2ParametersGenerator. digest)
@@ -111,7 +112,7 @@
 (defmethod derive-password :pbkdf2+sha256b
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* alg))
+        iterations (or iterations (get +iterations+ alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
                (.init password salt iterations))
         password (.getKey (.generateDerivedParameters pgen 160))]
@@ -138,7 +139,7 @@
 (defmethod derive-password :pbkdf2+sha3_256
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* alg))
+        iterations (or iterations (get +iterations+ alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA3Digest. 256))
                (.init password salt iterations))
         password (.getKey (.generateDerivedParameters pgen 256))]
@@ -155,7 +156,7 @@
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get *default-iterations* alg))
+        iterations (or iterations (get +iterations+ alg))
         iv (buddy.impl.bcrypt.BCrypt/gensalt iterations)
         pwd (-> password
                 (bytes/concat salt)
@@ -171,7 +172,7 @@
 (defmethod derive-password :bcrypt+blake2b-512
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
-        iterations (or iterations (get *default-iterations* alg))
+        iterations (or iterations (get +iterations+ alg))
         password (-> (hash/blake2b-512 password)
                      (BCrypt/generate salt iterations))]
     {:alg alg
@@ -182,7 +183,7 @@
 (defmethod derive-password :bcrypt+sha384
   [{:keys [alg password salt iterations] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
-        iterations (or iterations (get *default-iterations* alg))
+        iterations (or iterations (get +iterations+ alg))
         password (-> (hash/sha384 password)
                      (BCrypt/generate salt iterations))]
     {:alg alg
@@ -193,8 +194,8 @@
 (defmethod derive-password :scrypt
   [{:keys [alg password salt cpucost memcost parallelism] :as pwdparams}]
   (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        cpucost (or cpucost (get-in *default-iterations* [:scrypt :cpucost]))
-        memcost (or memcost (get-in *default-iterations* [:scrypt :memcost]))
+        cpucost (or cpucost (get-in +iterations+ [:scrypt :cpucost]))
+        memcost (or memcost (get-in +iterations+ [:scrypt :memcost]))
         parallelism (or parallelism 1)
         password (-> (bytes/concat salt password salt)
                      (codecs/bytes->hex)
@@ -317,7 +318,7 @@
 
 (defmethod must-update? :default
   [{:keys [alg iterations]}]
-  (let [desired-iterations (get *default-iterations* alg)]
+  (let [desired-iterations (get +iterations+ alg)]
     (and desired-iterations (> desired-iterations iterations))))
 
 (defmethod must-update? :bcrypt+sha512
@@ -326,8 +327,8 @@
 
 (defmethod must-update? :scrypt
   [{:keys [alg memcost cpucost]}]
-  (let [desired-memcost (get-in *default-iterations* [:scrypt :memcost])
-        desired-cpucost (get-in *default-iterations* [:scrypt :cpucost])]
+  (let [desired-memcost (get-in +iterations+ [:scrypt :memcost])
+        desired-cpucost (get-in +iterations+ [:scrypt :cpucost])]
     (and desired-cpucost
          desired-memcost
          (or (> desired-memcost memcost)
