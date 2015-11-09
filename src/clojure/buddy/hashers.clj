@@ -27,9 +27,6 @@
            org.bouncycastle.crypto.generators.OpenBSDBCrypt
            java.security.Security))
 
-(when (nil? (Security/getProvider "BC"))
-  (Security/addProvider (org.bouncycastle.jce.provider.BouncyCastleProvider.)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
