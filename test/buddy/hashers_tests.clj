@@ -127,7 +127,7 @@
     (is (hashers/check "hello" pwd))
     (is (not (hashers/check "hello" pwd {:limit limit})))))
 
-(deftest setter-called
+(deftest update-policy-generic
   (let [pwd (hashers/encrypt "hello" {:algorithm :bcrypt+sha512
                                       :iterations 10})
         p (promise)]
