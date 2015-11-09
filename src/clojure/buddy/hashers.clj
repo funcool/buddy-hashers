@@ -13,7 +13,7 @@
 ;; limitations under the License.
 
 (ns buddy.hashers
-  (:require [buddy.core.codecs :refer :all]
+  (:require [buddy.core.codecs :as codecs]
             [buddy.core.hash :as hash]
             [buddy.core.nonce :as nonce]
             [buddy.core.bytes :as bytes]
@@ -23,8 +23,9 @@
            org.bouncycastle.crypto.digests.SHA256Digest
            org.bouncycastle.crypto.digests.SHA3Digest
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
-           java.security.Security
-           buddy.impl.bcrypt.BCrypt))
+           org.bouncycastle.crypto.generators.BCrypt
+           org.bouncycastle.crypto.generators.OpenBSDBCrypt
+           java.security.Security))
 
 (when (nil? (Security/getProvider "BC"))
   (Security/addProvider (org.bouncycastle.jce.provider.BouncyCastleProvider.)))
@@ -41,6 +42,7 @@
    :pbkdf2+sha3-256 5000
    :bcrypt+sha512 12
    :bcrypt+sha384 12
+   :bcrypt+blake2b-512 12
    :scrypt {:cpucost 65536
             :memcost 8}})
 
@@ -83,7 +85,7 @@
 
 (defmethod derive-password :pbkdf2
   [{:keys [alg password salt iterations digest] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         alg (keyword (str "pbkdf2+" (name digest)))
         iterations (or iterations (get *default-iterations* alg))
         digest (hash/resolve-digest-engine digest)
@@ -108,7 +110,7 @@
 
 (defmethod derive-password :pbkdf2+sha256b
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
                (.init password salt iterations))
@@ -135,7 +137,7 @@
 
 (defmethod derive-password :pbkdf2+sha3_256
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA3Digest. 256))
                (.init password salt iterations))
@@ -152,46 +154,52 @@
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get *default-iterations* alg))
-        iv (BCrypt/gensalt iterations)
+        iv (buddy.impl.bcrypt.BCrypt/gensalt iterations)
         pwd (-> password
                 (bytes/concat salt)
                 (hash/sha512)
-                (bytes->hex)
-                (BCrypt/hashpw iv)
-                (str->bytes))]
+                (codecs/bytes->hex)
+                (buddy.impl.bcrypt.BCrypt/hashpw iv)
+                (codecs/str->bytes))]
     {:alg alg
      :iterations iterations
      :salt salt
      :password pwd}))
+
+(defmethod derive-password :bcrypt+blake2b-512
+  [{:keys [alg password salt iterations] :as pwdparams}]
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
+        iterations (or iterations (get *default-iterations* alg))
+        password (-> (hash/blake2b-512 password)
+                     (BCrypt/generate salt iterations))]
+    {:alg alg
+     :iterations iterations
+     :salt salt
+     :password password}))
 
 (defmethod derive-password :bcrypt+sha384
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get *default-iterations* alg))
-        iv (BCrypt/gensalt iterations)
-        pwd (-> password
-                (bytes/concat salt)
-                (hash/sha384)
-                (bytes->base64)
-                (BCrypt/hashpw iv)
-                (str->bytes))]
+        password (-> (hash/sha384 password)
+                     (BCrypt/generate salt iterations))]
     {:alg alg
      :iterations iterations
      :salt salt
-     :password pwd}))
+     :password password}))
 
 (defmethod derive-password :scrypt
   [{:keys [alg password salt cpucost memcost parallelism] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         cpucost (or cpucost (get-in *default-iterations* [:scrypt :cpucost]))
         memcost (or memcost (get-in *default-iterations* [:scrypt :memcost]))
         parallelism (or parallelism 1)
         password (-> (bytes/concat salt password salt)
-                     (bytes->hex)
+                     (codecs/bytes->hex)
                      (scrypt/encrypt cpucost memcost parallelism)
-                     (str->bytes))]
+                     (codecs/str->bytes))]
     {:alg alg
      :cpucost cpucost
      :memcost memcost
@@ -201,7 +209,7 @@
 
 (defmethod derive-password :sha256
   [{:keys [alg password salt] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         password (-> (bytes/concat password salt)
                      (hash/sha256))]
     {:alg :sha256
@@ -210,7 +218,7 @@
 
 (defmethod derive-password :md5
   [{:keys [alg password salt] :as pwdparams}]
-  (let [salt (->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
         password (-> (bytes/concat password salt)
                      (hash/md5))]
     {:alg :md5
@@ -227,22 +235,15 @@
   [pwdparams attempt]
   (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
                       (hash/sha512))]
-    (BCrypt/checkpw (bytes->hex candidate)
-                    (bytes->str (:password pwdparams)))))
-
-(defmethod check-password :bcrypt+sha384
-  [pwdparams attempt]
-  (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
-                      (hash/sha384))]
-    (BCrypt/checkpw (bytes->base64 candidate)
-                    (bytes->str (:password pwdparams)))))
+    (buddy.impl.bcrypt.BCrypt/checkpw (codecs/bytes->hex candidate)
+                                      (codecs/bytes->str (:password pwdparams)))))
 
 (defmethod check-password :scrypt
   [pwdparams attempt]
   (let [salt (:salt pwdparams)
         candidate (bytes/concat salt attempt salt)]
-    (scrypt/verify (bytes->hex candidate)
-                   (bytes->str (:password pwdparams)))))
+    (scrypt/verify (codecs/bytes->hex candidate)
+                   (codecs/bytes->str (:password pwdparams)))))
 
 (defmethod check-password :default
   [pwdparams attempt]
@@ -257,15 +258,15 @@
 
 (defmethod format-password :scrypt
   [{:keys [password salt cpucost memcost parallelism]}]
-  (let [salt (bytes->hex salt)
-        password (bytes->hex password)]
+  (let [salt (codecs/bytes->hex salt)
+        password (codecs/bytes->hex password)]
     (format "scrypt$%s$%s$%s$%s$%s" salt cpucost memcost parallelism password)))
 
 (defmethod format-password :default
   [{:keys [alg password salt iterations]}]
   (let [algname (name alg)
-        salt (bytes->hex salt)
-        password (bytes->hex password)]
+        salt (codecs/bytes->hex salt)
+        password (codecs/bytes->hex password)]
     (if (nil? iterations)
       (format "%s$%s$%s" algname salt password)
       (format "%s$%s$%s$%s" algname salt iterations password))))
@@ -279,8 +280,8 @@
   (let [[alg salt cc mc pll password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
     {:alg alg
-     :salt (hex->bytes salt)
-     :password (hex->bytes password)
+     :salt (codecs/hex->bytes salt)
+     :password (codecs/hex->bytes password)
      :cpucost (Integer/parseInt cc)
      :memcost (Integer/parseInt mc)
      :parallelism (Integer/parseInt pll)}))
@@ -290,24 +291,24 @@
   (let [[alg salt password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
     {:alg alg
-     :salt (hex->bytes salt)
-     :password (hex->bytes password)}))
+     :salt (codecs/hex->bytes salt)
+     :password (codecs/hex->bytes password)}))
 
 (defmethod parse-password :md5
   [encryptedpassword]
   (let [[alg salt password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
     {:alg alg
-     :salt (hex->bytes salt)
-     :password (hex->bytes password)}))
+     :salt (codecs/hex->bytes salt)
+     :password (codecs/hex->bytes password)}))
 
 (defmethod parse-password :default
   [encryptedpassword]
   (let [[alg salt iterations password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
     {:alg alg
-     :salt (hex->bytes salt)
-     :password (hex->bytes password)
+     :salt (codecs/hex->bytes salt)
+     :password (codecs/hex->bytes password)
      :iterations (Integer/parseInt iterations)}))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -345,7 +346,7 @@
                  :bcrypt+sha384)
          pwdparams (assoc options
                           :alg alg
-                          :password (str->bytes password))]
+                          :password (codecs/str->bytes password))]
      (-> (derive-password pwdparams)
          (format-password)))))
 
@@ -359,7 +360,7 @@
      (let [pwdparams (parse-password encrypted)]
        (if (and (set? limit) (not (contains? limit (:alg pwdparams))))
          false
-         (let [attempt' (str->bytes attempt)
+         (let [attempt' (codecs/str->bytes attempt)
                result (check-password pwdparams attempt')]
            (when (and result (fn? setter) (must-update? pwdparams))
              (setter attempt))
