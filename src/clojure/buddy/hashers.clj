@@ -131,26 +131,16 @@
      :salt salt
      :iterations iterations}))
 
-;; DEPRECATED: this impl hash the problem of the sha512 truncation to
-;; the 256 bits. It is not very big problem in terms of security or
-;; collision because sha256 is still secure and colision resistant.
-;; But is now deprecated bacause it does not works as expected.
-
 (defmethod derive-password :bcrypt+sha512
-  [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
+  [{:keys [alg password salt iterations]}]
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get +iterations+ alg))
-        iv (buddy.impl.bcrypt.BCrypt/gensalt iterations)
-        pwd (-> password
-                (bytes/concat salt)
-                (hash/sha512)
-                (codecs/bytes->hex)
-                (buddy.impl.bcrypt.BCrypt/hashpw iv)
-                (codecs/str->bytes))]
+        password (-> (hash/sha512 password)
+                     (BCrypt/generate salt iterations))]
     {:alg alg
      :iterations iterations
      :salt salt
-     :password pwd}))
+     :password password}))
 
 (defmethod derive-password :bcrypt+blake2b-512
   [{:keys [alg password salt iterations] :as pwdparams}]
@@ -213,14 +203,21 @@
 ;; Key Verification
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; DEPRECATED: see note on derive-password
-
 (defmethod check-password :bcrypt+sha512
-  [pwdparams attempt]
-  (let [candidate (-> (bytes/concat attempt (:salt pwdparams))
-                      (hash/sha512))]
-    (buddy.impl.bcrypt.BCrypt/checkpw (codecs/bytes->hex candidate)
-                                      (codecs/bytes->str (:password pwdparams)))))
+  [params attempt]
+  (let [pwdbytes (:password params)]
+    (if (= (count pwdbytes) 24)
+      (let [params' (assoc params :password attempt)
+            candidate (derive-password params')]
+        (bytes/equals? (:password params)
+                       (:password candidate)))
+      ;; Backward compatibility for password checking
+      ;; for old algorithm
+      (let [candidate (-> (bytes/concat attempt (:salt params))
+                          (hash/sha512))]
+        (buddy.impl.bcrypt.BCrypt/checkpw
+         (codecs/bytes->hex candidate)
+         (codecs/bytes->str (:password params)))))))
 
 (defmethod check-password :scrypt
   [pwdparams attempt]
@@ -331,8 +328,10 @@
     (and desired-iterations (> desired-iterations iterations))))
 
 (defmethod must-update? :bcrypt+sha512
-  [{:keys [alg iterations]}]
-  true)
+  [{:keys [password iterations alg]}]
+  (or (not= (count password) 24)
+      (let [desired-iterations (get +iterations+ alg)]
+        (and desired-iterations (> desired-iterations iterations)))))
 
 (defmethod must-update? :pbkdf2+sha256
   [{:keys [password iterations alg]}]
