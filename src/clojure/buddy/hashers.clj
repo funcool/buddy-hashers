@@ -24,7 +24,6 @@
            org.bouncycastle.crypto.digests.SHA3Digest
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
            org.bouncycastle.crypto.generators.BCrypt
-           org.bouncycastle.crypto.generators.OpenBSDBCrypt
            java.security.Security))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
