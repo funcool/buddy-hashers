@@ -34,6 +34,7 @@
   +iterations+
   {:pbkdf2+sha1 100000
    :pbkdf2+sha256 100000
+   :pbkdf2+sha512 100000
    :pbkdf2+blake2b-512 50000
    :pbkdf2+sha3_256 5000
    :pbkdf2+sha3-256 5000
