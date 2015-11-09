@@ -22,7 +22,7 @@ password authentication processes.
 | Identifier         | Can I use it? | Description
 | `:bcrypt+sha386`   | Recommended      |BCrypt password hasher combined with sha512 (due to 75 chars password limitation of bcrypt)
 | `:pbkdf2+blake2b-512`   | Recommended      | Password-Based Key Derivation Function 2 with Blake2b-512
-| `:pbkdf2+sha256`   | Recommended      | Password-Based Key Derivation Function 2 with SHA256
+| `:pbkdf2+sha256`   | Yes              | Password-Based Key Derivation Function 2 with SHA256
 | `:pbkdf2+sha3_256` | Yes              | Password-Based Key Derivation Function 2 with SHA3 256bit
 | `:pbkdf2+sha1`     | Yes              | Password-Based Key Derivation Function 2 (as defined in RFC2898)
 | `:scrypt`          | Yes              | Password-Based Key Derivation Function created by Colin Percival
