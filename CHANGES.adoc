@@ -29,6 +29,7 @@ Other changes:
   compatible change because the previous alias is still conserved.
 - The `md5` and `sha256` hashers has been deprecated and will be removed in the
   next version.
+- Add `:pbkdf2+blake2b-512` hasher as part of the recommended password hashers.
 - The `:algorithm` parameter is deprecated in favor of the shorter `:alg`.
 
 

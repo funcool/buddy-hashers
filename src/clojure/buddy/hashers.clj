@@ -36,6 +36,7 @@
 (def ^:dynamic *default-iterations*
   {:pbkdf2+sha1 100000
    :pbkdf2+sha256 100000
+   :pbkdf2+blake2b-512 50000
    :pbkdf2+sha3_256 5000
    :pbkdf2+sha3-256 5000
    :bcrypt+sha512 12
@@ -120,6 +121,10 @@
 (defmethod derive-password :pbkdf2+sha256
   [options]
   (derive-password (assoc options :alg :pbkdf2 :digest :sha256)))
+
+(defmethod derive-password :pbkdf2+blake2b-512
+  [options]
+  (derive-password (assoc options :alg :pbkdf2 :digest :blake2b-512)))
 
 (defmethod derive-password :pbkdf2+sha3-256
   [options]
