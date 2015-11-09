@@ -100,27 +100,13 @@
   [options]
   (derive-password (assoc options :alg :pbkdf2 :digest :sha1)))
 
-;; NOTE: this is a special case for the previous impl that
-;; uses weaker configuration that it should be. This weaker
-;; impl implies the same security as :pbkdf2+sha1 with stronger
-;; hasher implementation truncated to 160 bytes. It menans that
-;; it at least secure as :pbkdf2+sha1 that is considered secure.
-
-(defmethod derive-password :pbkdf2+sha256b
-  [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get +iterations+ alg))
-        pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
-               (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen 160))]
-    {:alg alg
-     :password password
-     :salt salt
-     :iterations iterations}))
-
 (defmethod derive-password :pbkdf2+sha256
   [options]
   (derive-password (assoc options :alg :pbkdf2 :digest :sha256)))
+
+(defmethod derive-password :pbkdf2+sha512
+  [options]
+  (derive-password (assoc options :alg :pbkdf2 :digest :sha512)))
 
 (defmethod derive-password :pbkdf2+blake2b-512
   [options]
@@ -243,6 +229,32 @@
     (scrypt/verify (codecs/bytes->hex candidate)
                    (codecs/bytes->str (:password pwdparams)))))
 
+(defn- derive-password-for-legacy-pbkdf2+sha256
+  [{:keys [alg password salt saltsize iterations]}]
+  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
+        iterations (or iterations (get +iterations+ alg))
+        pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
+               (.init password salt iterations))
+        password (.getKey (.generateDerivedParameters pgen 160))]
+    {:alg alg
+     :password password
+     :salt salt
+     :iterations iterations}))
+
+(defmethod check-password :pbkdf2+sha256
+  [params attempt]
+  (let [pwdbytes (:password params)]
+    (if (= (count pwdbytes) 20)
+      ;; Backward compatibility with older passwords
+      (let [params' (assoc params :password attempt)
+            candidate (derive-password-for-legacy-pbkdf2+sha256 params')]
+        (bytes/equals? (:password params)
+                       (:password candidate)))
+      (let [params' (assoc params :password attempt)
+            candidate (derive-password params')]
+        (bytes/equals? (:password params)
+                       (:password candidate))))))
+
 (defmethod check-password :default
   [pwdparams attempt]
   (let [candidate (-> (assoc pwdparams :password attempt)
@@ -321,6 +333,12 @@
 (defmethod must-update? :bcrypt+sha512
   [{:keys [alg iterations]}]
   true)
+
+(defmethod must-update? :pbkdf2+sha256
+  [{:keys [password iterations alg]}]
+  (or (< (count password) 32)
+      (let [desired-iterations (get +iterations+ alg)]
+        (and desired-iterations (> desired-iterations iterations)))))
 
 (defmethod must-update? :scrypt
   [{:keys [alg memcost cpucost]}]
