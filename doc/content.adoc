@@ -1,6 +1,6 @@
 = buddy-hashers - password hashers for Clojure
 Andrey Antukh, <niwi@niwi.nz>
-0.10.0
+0.11.0
 :toc: left
 :!numbered:
 :source-highlighter: pygments
@@ -39,7 +39,7 @@ Since _buddy-hashers_ is a young project there can be some API breakage.
 
 === Install
 
-This section covers the _buddy-hashers_ library installing process and its 
+This section covers the _buddy-hashers_ library installing process and its
 requirements.
 
 
@@ -58,7 +58,7 @@ the dependency list on your *_project.clj_* file:
 
 [source,clojure]
 ----
-[buddy/buddy-hashers "0.10.0"]
+[buddy/buddy-hashers "0.11.0"]
 ----
 
 [[quickstart]]
