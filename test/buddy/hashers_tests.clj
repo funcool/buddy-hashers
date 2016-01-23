@@ -1,4 +1,4 @@
-;; Copyright 2014-2015 Andrey Antukh <niwi@niwi.nz>
+;; Copyright 2014-2016 Andrey Antukh <niwi@niwi.nz>
 ;;
 ;; Licensed under the Apache License, Version 2.0 (the "License")
 ;; you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@
 (deftest buddy-hashers
   (let [pwd "my-test-password"]
     (are [alg]
-        (let [result (hashers/encrypt pwd {:algorithm alg})]
+        (let [result (hashers/encrypt pwd {:alg alg})]
           (hashers/check pwd result))
       :pbkdf2+sha1
       :pbkdf2+sha256
@@ -33,9 +33,7 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt
-      :sha256
-      :md5)))
+      :scrypt)))
 
 (deftest buddy-hashers
   (let [pwd "my-test-password"]
@@ -50,15 +48,13 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt
-      :sha256
-      :md5)))
+      :scrypt)))
 
 (deftest confirm-check-failure
   (let [pwd-good "my-test-password"
         pwd-bad "my-text-password"]
     (are [alg]
-        (let [result (hashers/encrypt pwd-good {:algorithm alg})]
+        (let [result (hashers/encrypt pwd-good {:alg alg})]
           (not (hashers/check pwd-bad result)))
       :pbkdf2+sha1
       :pbkdf2+sha256
@@ -69,13 +65,11 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt
-      :sha256
-      :md5)))
+      :scrypt)))
 
 (deftest buddy-hashers-nil
   (let [pwd "my-test-password"
-        result (hashers/encrypt pwd {:algorithm :pbkdf2+sha256})]
+        result (hashers/encrypt pwd {:alg :pbkdf2+sha256})]
     (is (nil? (hashers/check nil result)))
     (is (nil? (hashers/check pwd nil)))
     (is (nil? (hashers/check nil nil)))))
@@ -83,7 +77,7 @@
 (deftest algorithm-embedded-in-hash
   (let [pwd "my-test-password"]
     (are [alg]
-        (-> (hashers/encrypt pwd {:algorithm alg})
+        (-> (hashers/encrypt pwd {:alg alg})
             (.startsWith (name alg)))
       :pbkdf2+sha1
       :pbkdf2+sha256
@@ -94,9 +88,7 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt
-      :sha256
-      :md5)))
+      :scrypt)))
 
 ;; Confirm that the algorithm used is always embedded at the
 ;; start of the hash, and that the salt is also appended (after
@@ -106,7 +98,7 @@
   (let [pwd "my-test-password"
         salt (nonce/random-bytes 16)]
     (are [alg]
-        (-> (hashers/encrypt pwd {:algorithm alg :salt salt})
+        (-> (hashers/encrypt pwd {:alg alg :salt salt})
             (.startsWith (str (name alg) "$" ( bytes->hex salt))))
       :pbkdf2+sha1
       :pbkdf2+sha256
@@ -117,18 +109,16 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt
-      :sha256
-      :md5)))
+      :scrypt)))
 
 (deftest limit-available-algorithms
-  (let [pwd (hashers/encrypt "hello" {:algorithm :md5})
+  (let [pwd (hashers/encrypt "hello" {:alg :scrypt})
         limit #{:pbkdf2+sha256 :bcrypt+sha512}]
     (is (hashers/check "hello" pwd))
     (is (not (hashers/check "hello" pwd {:limit limit})))))
 
 (deftest update-policy-generic
-  (let [pwd (hashers/encrypt "hello" {:algorithm :bcrypt+sha512
+  (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
                                       :iterations 10})
         p (promise)]
     (is (hashers/check "hello" pwd {:setter #(deliver p %)}))
@@ -179,7 +169,6 @@
     (is (hashers/check "test" pbkdf2+sha3_256))
     (is (hashers/check "test" pbkdf2+sha3-256))
     (is (hashers/check "test" scrypt))
-    (is (hashers/check "test" sha256))
     (is (hashers/check "test" pbkdf2+blake2b-512))
     (is (hashers/check "test" bcrypt+sha512-legacy))
     (is (hashers/check "test" bcrypt+sha512))
@@ -192,7 +181,7 @@
     (are [alg]
         (do
           (println alg)
-          (time (hashers/encrypt pwd {:algorithm alg}))
+          (time (hashers/encrypt pwd {:alg alg}))
           true)
       :pbkdf2+sha1
       :pbkdf2+sha256
@@ -203,7 +192,5 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt
-      :sha256
-      :md5)))
+      :scrypt)))
 

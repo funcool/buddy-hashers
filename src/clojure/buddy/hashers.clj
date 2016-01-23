@@ -181,24 +181,6 @@
      :password password
      :salt salt}))
 
-(defmethod derive-password :sha256
-  [{:keys [alg password salt] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        password (-> (bytes/concat password salt)
-                     (hash/sha256))]
-    {:alg :sha256
-     :password password
-     :salt salt}))
-
-(defmethod derive-password :md5
-  [{:keys [alg password salt] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
-        password (-> (bytes/concat password salt)
-                     (hash/md5))]
-    {:alg :md5
-     :password password
-     :salt salt}))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Verification
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -293,22 +275,6 @@
      :cpucost (Integer/parseInt cc)
      :memcost (Integer/parseInt mc)
      :parallelism (Integer/parseInt pll)}))
-
-(defmethod parse-password :sha256
-  [encryptedpassword]
-  (let [[alg salt password] (str/split encryptedpassword #"\$")
-        alg (keyword alg)]
-    {:alg alg
-     :salt (codecs/hex->bytes salt)
-     :password (codecs/hex->bytes password)}))
-
-(defmethod parse-password :md5
-  [encryptedpassword]
-  (let [[alg salt password] (str/split encryptedpassword #"\$")
-        alg (keyword alg)]
-    {:alg alg
-     :salt (codecs/hex->bytes salt)
-     :password (codecs/hex->bytes password)}))
 
 (defmethod parse-password :default
   [encryptedpassword]
