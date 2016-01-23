@@ -75,15 +75,15 @@ Let start encrypting a password:
 
 ;; Generate hash from plain password
 (hashers/encrypt "secretpassword"))
-;; => "bcrypt+blake2b-512$4i9sd34m..."
+;; => "bcrypt+sha512$4i9sd34m..."
 
-(hashers/check "secretpassword" "bcrypt+blake2b-512$4i9sd34m..."))
+(hashers/check "secretpassword" "bcrypt+sha512$4i9sd34m..."))
 ;; => true
 ----
 
-If no algorithm is specified, a random one will be choiced from a recommeded
-to use algorithms list. If you want to use a specific one, you can specify
-it using the optional options parameter:
+If no algorithm is specified, the `:bcrypt+sha512` will be used by default.
+If you want to use a specific one, you can specify it using the optional options
+parameter:
 
 [source,clojure]
 ----
