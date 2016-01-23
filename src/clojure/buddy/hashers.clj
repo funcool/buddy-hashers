@@ -44,14 +44,6 @@
    :scrypt {:cpucost 65536
             :memcost 8}})
 
-(def ^:no-doc ^:static
-  +recommended-algorithms+
-  [:pbkdf2+sha3-256
-   :pbkdf2+sha512
-   :pbkdf2+blake2b-512
-   :bcrypt+blake2b-512
-   :bcrypt+sha512])
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Impl Interface
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -219,6 +211,7 @@
             candidate (derive-password params')]
         (bytes/equals? (:password params)
                        (:password candidate)))
+
       ;; Backward compatibility for password checking
       ;; for old algorithm
       (let [candidate (-> (bytes/concat attempt (:salt params))
@@ -364,14 +357,11 @@
   "Encrypts a raw string password."
   ([password] (encrypt password {}))
   ([password options]
-   (let [alg (or (:algorithm options nil)
-                 (:alg options)
-                 (rand-nth +recommended-algorithms+))
-         pwdparams (assoc options
-                          :alg alg
-                          :password (codecs/str->bytes password))]
-     (-> (derive-password pwdparams)
-         (format-password)))))
+   (-> (assoc options
+              :alg (:alg options :bcrypt+sha512)
+              :password (codecs/str->bytes password))
+       (derive-password)
+       (format-password))))
 
 (defn check
   "Check if a unencrypted password matches
