@@ -13,6 +13,7 @@
 ;; limitations under the License.
 
 (ns buddy.hashers
+  (:refer-clojure :exclude [derive])
   (:require [buddy.core.codecs :as codecs]
             [buddy.core.hash :as hash]
             [buddy.core.nonce :as nonce]
@@ -319,9 +320,9 @@
 ;; Public Api
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn encrypt
+(defn derive
   "Encrypts a raw string password."
-  ([password] (encrypt password {}))
+  ([password] (derive password {}))
   ([password options]
    (-> (assoc options
               :alg (:alg options :bcrypt+sha512)
@@ -344,3 +345,8 @@
            (when (and result (fn? setter) (must-update? pwdparams))
              (setter attempt))
            result))))))
+
+
+(def encrypt
+  "Backward compatibility alias for `derive`."
+  derive)
