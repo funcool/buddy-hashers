@@ -24,7 +24,7 @@ password authentication processes.
 | `:pbkdf2+blake2b-512` | Recommended | Password-Based Key Derivation Function 2 with blake2b-512
 | `:pbkdf2+sha512`   | Recommended | Password-Based Key Derivation Function 2 with SHA256
 | `:pbkdf2+sha3-256` | Recommended | Password-Based Key Derivation Function 2 with SHA3-256
-| `:bcrypt+sha512`   | Recommended | BCrypt password hasher combined with sha512 (see release notes for more information about that).
+| `:bcrypt+sha512`   | Recommended | BCrypt password hasher combined with sha512 (default).
 | `:pbkdf2+sha256`   | Yes | Password-Based Key Derivation Function 2 with SHA256
 | `:bcrypt+sha384`   | Yes | BCrypt password hasher combined with sha384
 | `:pbkdf2+sha1`     | Yes | Password-Based Key Derivation Function 2 (as defined in RFC2898)
@@ -39,42 +39,31 @@ Since _buddy-hashers_ is a young project there can be some API breakage.
 
 === Install
 
-This section covers the _buddy-hashers_ library installing process and its
-requirements.
-
-
-==== Requirements
-
-_buddy-hashers_ is tested with these platforms:
-
-- JDK7
-- JDK8
-
-
-=== Leiningen
-
-The simplest way to use _buddy-hashers_ in a clojure project, is by including it in
-the dependency list on your *_project.clj_* file:
+The simplest way to use _buddy-core_ in a clojure project, is by including it in the
+dependency vector on your *_project.clj_* file:
 
 [source,clojure]
 ----
-[buddy/buddy-hashers "0.11.0"]
+[buddy/buddy-hashers "0.12.0"]
 ----
+
+And is tested under JDK7 and JDK8.
+
 
 [[quickstart]]
 == Quick Start
 
-Hashers module consists in two public functions: *encrypt* and *check* and both
+Hashers module consists in two public functions: *derive* and *check* and both
 them are located on `buddy.hashers` namespace.
 
-Let start encrypting a password:
+Let start deriving a password:
 
 [source,clojure]
 ----
 (require '[buddy.hashers :as hashers])
 
 ;; Generate hash from plain password
-(hashers/encrypt "secretpassword"))
+(hashers/derive "secretpassword"))
 ;; => "bcrypt+sha512$4i9sd34m..."
 
 (hashers/check "secretpassword" "bcrypt+sha512$4i9sd34m..."))
@@ -88,7 +77,7 @@ parameter:
 [source,clojure]
 ----
 ;; Generate hash from plain password
-(hashers/encrypt "secretpassword" {:alg :pbkdf2+sha256))
+(hashers/derive "secretpassword" {:alg :pbkdf2+sha256))
 ;; => "pbkdf2+sha256$4i9sd34m..."
 
 (hashers/check "secretpassword" "pbkdf2+sha256$4i9sd34m..."))
@@ -100,7 +89,7 @@ parameter:
 === Algorithm tunning params
 
 Each algorithm can be tweaked passing additional parameters on the second argument
-to *encrypt* function. And options vary depending on the used algorithm.
+to *derive* function. And options vary depending on the used algorithm.
 
 .Table that deails available options and their defaults
 [options="header", cols="2,2,4"]
@@ -128,7 +117,7 @@ passing additional parameter to the `check` function:
 ----
 (def trusted-algs #{:pbkdf2+sha256 :bcrypt+sha512})
 
-(hashers/check incoming-pwd encrypted-pwd {:limit trusted-algs})
+(hashers/check incoming-pwd derived-pwd {:limit trusted-algs})
 ----
 
 The `check` function will return false if the incoming password uses an algorithm
@@ -136,7 +125,6 @@ that does not allowed.
 
 
 === Rehash Hook
-
 
 Choice a strong algorithm is important thing, but have a good update
 password-hashes policy is also very important and usually completelly forgotten.
@@ -151,9 +139,9 @@ It there is an example on how it can be used:
 [source, clojure]
 ----
 (letfn [(setter [pwd]
-          (let [pwd (hashers/encrypt pwd)]
+          (let [pwd (hashers/derive pwd)]
             (do-the-db-update pwd)))]
-  (hashers/check incoming-pwd encrypted-pwd {:setter setter}))
+  (hashers/check incoming-pwd derived-pwd {:setter setter}))
 ----
 
 The setter will be called when the incoming password is valid but its config
