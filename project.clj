@@ -1,4 +1,4 @@
-(defproject buddy/buddy-hashers "0.11.0"
+(defproject buddy/buddy-hashers "0.12.0"
   :description "A collection of secure password hashers for Clojure"
   :url "https://github.com/funcool/buddy-hashers"
   :license {:name "Apache 2.0"
