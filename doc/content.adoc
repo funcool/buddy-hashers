@@ -1,6 +1,6 @@
 = buddy-hashers - password hashers for Clojure
 Andrey Antukh, <niwi@niwi.nz>
-0.11.0
+0.12.0
 :toc: left
 :!numbered:
 :source-highlighter: pygments
