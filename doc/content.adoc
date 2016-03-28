@@ -1,6 +1,6 @@
 = buddy-hashers - password hashers for Clojure
 Andrey Antukh, <niwi@niwi.nz>
-0.12.0
+0.13.0
 :toc: left
 :!numbered:
 :source-highlighter: pygments
@@ -44,7 +44,7 @@ dependency vector on your *_project.clj_* file:
 
 [source,clojure]
 ----
-[buddy/buddy-hashers "0.12.0"]
+[buddy/buddy-hashers "0.13.0"]
 ----
 
 And is tested under JDK7 and JDK8.
