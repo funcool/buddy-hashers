@@ -2,10 +2,10 @@
 
 == Version 0.12.0
 
-Date: 2016-03-26
+Date: 2016-03-27
 
 - The `encrypt` function becomes `derive` (backward compatibile change).
-- Update buddy-core to 0.10.0.
+- Update buddy-core to 0.11.0.
 
 
 == Version 0.11.0
