@@ -4,7 +4,7 @@
   :license {:name "Apache 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.8.0" :scope "provided"]
-                 [buddy/buddy-core "0.9.0"]
+                 [buddy/buddy-core "0.12.1"]
                  [clojurewerkz/scrypt "1.2.0"]]
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
