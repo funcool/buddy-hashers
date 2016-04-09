@@ -83,7 +83,7 @@
 
 (defmethod derive-password :pbkdf2
   [{:keys [alg password salt iterations digest] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
         alg (keyword (str "pbkdf2+" (name digest)))
         iterations (or iterations (get +iterations+ alg))
         digest (hash/resolve-digest-engine digest)
@@ -121,7 +121,7 @@
 
 (defmethod derive-password :pbkdf2+sha3_256
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get +iterations+ alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA3Digest. 256))
                (.init password salt iterations))
@@ -133,7 +133,7 @@
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations]}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get +iterations+ alg))
         password (-> (hash/sha512 password)
                      (BCrypt/generate salt iterations))]
@@ -144,7 +144,7 @@
 
 (defmethod derive-password :bcrypt+blake2b-512
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get +iterations+ alg))
         password (-> (hash/blake2b-512 password)
                      (BCrypt/generate salt iterations))]
@@ -155,7 +155,7 @@
 
 (defmethod derive-password :bcrypt+sha384
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 16)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
         iterations (or iterations (get +iterations+ alg))
         password (-> (hash/sha384 password)
                      (BCrypt/generate salt iterations))]
@@ -166,7 +166,7 @@
 
 (defmethod derive-password :scrypt
   [{:keys [alg password salt cpucost memcost parallelism] :as pwdparams}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
         cpucost (or cpucost (get-in +iterations+ [:scrypt :cpucost]))
         memcost (or memcost (get-in +iterations+ [:scrypt :memcost]))
         parallelism (or parallelism 1)
@@ -211,7 +211,7 @@
 
 (defn- derive-password-for-legacy-pbkdf2+sha256
   [{:keys [alg password salt saltsize iterations]}]
-  (let [salt (codecs/->byte-array (or salt (nonce/random-bytes 12)))
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
         iterations (or iterations (get +iterations+ alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
                (.init password salt iterations))
