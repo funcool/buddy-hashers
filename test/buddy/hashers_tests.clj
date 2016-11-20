@@ -35,21 +35,6 @@
       :bcrypt+blake2b-512
       :scrypt)))
 
-(deftest buddy-hashers
-  (let [pwd "my-test-password"]
-    (are [alg]
-        (let [result (hashers/encrypt pwd {:alg alg})]
-          (hashers/check pwd result))
-      :pbkdf2+sha1
-      :pbkdf2+sha256
-      :pbkdf2+sha512
-      :pbkdf2+sha3_256
-      :pbkdf2+blake2b-512
-      :bcrypt+sha512
-      :bcrypt+sha384
-      :bcrypt+blake2b-512
-      :scrypt)))
-
 (deftest confirm-check-failure
   (let [pwd-good "my-test-password"
         pwd-bad "my-text-password"]
