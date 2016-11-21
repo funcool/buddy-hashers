@@ -63,10 +63,10 @@ Let start deriving a password:
 (require '[buddy.hashers :as hashers])
 
 ;; Generate hash from plain password
-(hashers/derive "secretpassword"))
+(hashers/derive "secretpassword")
 ;; => "bcrypt+sha512$4i9sd34m..."
 
-(hashers/check "secretpassword" "bcrypt+sha512$4i9sd34m..."))
+(hashers/check "secretpassword" "bcrypt+sha512$4i9sd34m...")
 ;; => true
 ----
 
@@ -77,10 +77,10 @@ parameter:
 [source,clojure]
 ----
 ;; Generate hash from plain password
-(hashers/derive "secretpassword" {:alg :pbkdf2+sha256))
+(hashers/derive "secretpassword" {:alg :pbkdf2+sha256})
 ;; => "pbkdf2+sha256$4i9sd34m..."
 
-(hashers/check "secretpassword" "pbkdf2+sha256$4i9sd34m..."))
+(hashers/check "secretpassword" "pbkdf2+sha256$4i9sd34m...")
 ;; => true
 ----
 
