@@ -270,6 +270,8 @@
   [encryptedpassword]
   (let [[alg salt cc mc pll password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
+    (if (some nil? [salt cc mc pll password])
+      (throw (ex-info "Malformed hash" {})))
     {:alg alg
      :salt (codecs/hex->bytes salt)
      :password (codecs/hex->bytes password)
@@ -281,6 +283,8 @@
   [encryptedpassword]
   (let [[alg salt iterations password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
+    (if (some nil? [salt iterations password])
+      (throw (ex-info "Malformed hash" {})))
     {:alg alg
      :salt (codecs/hex->bytes salt)
      :password (codecs/hex->bytes password)
