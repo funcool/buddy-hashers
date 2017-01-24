@@ -3,8 +3,8 @@
   :url "https://github.com/funcool/buddy-hashers"
   :license {:name "Apache 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
-  :dependencies [[org.clojure/clojure "1.8.0" :scope "provided"]
-                 [buddy/buddy-core "1.1.1"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha14" :scope "provided"]
+                 [buddy/buddy-core "1.2.0"]
                  [clojurewerkz/scrypt "1.2.0"]]
   :source-paths ["src/clojure"]
   :java-source-paths ["src/java"]
