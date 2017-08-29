@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.3.0
+
+Date: 2017-08-29
+
+- Update buddy-core to 1.4.0
+
+
 ## Version 1.2.0
 
 Date: 2017-01-24
