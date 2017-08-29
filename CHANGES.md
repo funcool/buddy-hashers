@@ -1,20 +1,20 @@
-= Changelog
+# Changelog
 
-== Version 1.2.0
+## Version 1.2.0
 
 Date: 2017-01-24
 
 - Update buddy-core to 1.2.0
 
 
-== Version 1.1.0
+## Version 1.1.0
 
 Date: 2016-11-15
 
 - Update buddy-core to 1.1.1
 
 
-== Version 1.0.0
+## Version 1.0.0
 
 Date: 2016-09-01
 
@@ -22,21 +22,21 @@ Date: 2016-09-01
 - Change versiom scheme to be consistent with buddy-core.
 
 
-== Version 0.14.0
+## Version 0.14.0
 
 Date: 2016-04-09
 
 - Update buddy-core to 0.12.1.
 
 
-== Version 0.13.0
+## Version 0.13.0
 
 Date: 2016-03-27
 
 - Update buddy-core to 0.11.0.
 
 
-== Version 0.12.0
+## Version 0.12.0
 
 Date: 2016-03-26
 
@@ -44,7 +44,7 @@ Date: 2016-03-26
 - Update buddy-core to 0.10.0.
 
 
-== Version 0.11.0
+## Version 0.11.0
 
 Date: 2016-01-23
 
@@ -55,21 +55,21 @@ Date: 2016-01-23
 - Set clojure 1.8.0 as default clojure version.
 
 
-== Version 0.10.0
+## Version 0.10.0
 
 Date: 2016-01-06
 
 - Update buddy-core dependency to 0.9.0.
 
 
-== Version 0.9.1
+## Version 0.9.1
 
 Date: 2015-11-28
 
 - Update to buddy-core 0.8.1.
 
 
-== Version 0.9.0
+## Version 0.9.0
 
 Date: 2015-11-09
 
@@ -109,7 +109,7 @@ Other changes:
 - The `:algorithm` parameter is deprecated in favor of the shorter `:alg`.
 
 
-== Version 0.8.0
+## Version 0.8.0
 
 Date: 2015-10-31
 
@@ -122,7 +122,7 @@ Date: 2015-10-31
   the previous one was too heavy.
 
 
-== Version 0.7.0
+## Version 0.7.0
 
 Date: 2015-09-19
 
@@ -130,7 +130,7 @@ Date: 2015-09-19
 - Update buddy-core version to 0.7.0
 
 
-== Version 0.6.0
+## Version 0.6.0
 
 Date: 2015-06-28
 
@@ -138,28 +138,28 @@ Date: 2015-06-28
 - Remove buddy-hashers 0.2.x hashers implementation.
 
 
-== Version 0.5.0
+## Version 0.5.0
 
 Date: 2015-06-15
 
 - `check` function is now null pointer safe.
 
 
-== Version 0.4.2
+## Version 0.4.2
 
 Date: 2015-04-03
 
 - Update buddy-core to 0.5.0
 
 
-== Version 0.4.1
+## Version 0.4.1
 
 Date: 2015-03-14
 
 - Update buddy-core from 0.4.0 to 0.4.2
 
 
-== Version 0.4.0
+## Version 0.4.0
 
 Date: 2015-02-22
 
@@ -167,7 +167,7 @@ Date: 2015-02-22
 - Adapt the code to buddy-core 0.4.0
 
 
-== Version 0.3.0
+## Version 0.3.0
 
 Date: 2015-01-18
 
