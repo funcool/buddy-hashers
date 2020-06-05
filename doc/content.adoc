@@ -13,7 +13,7 @@ Andrey Antukh, <niwi@niwi.nz>
 == Introduction
 
 *buddy-hashers* provides a collection of secure password hashers
-with lightweight and extensible abstraction for build powerfull
+with lightweight and extensible abstraction for building powerful
 password authentication processes.
 
 .Supported password hashers algorithms
@@ -37,26 +37,26 @@ password authentication processes.
 Since _buddy-hashers_ is a young project there can be some API breakage.
 
 
-=== Install
+=== Installation
 
-The simplest way to use _buddy-core_ in a clojure project, is by including it in the
-dependency vector on your *_project.clj_* file:
+The simplest way to use _buddy-core_ in a Clojure project is by including it in
+the `:dependencies` vector in your *_project.clj_* file:
 
 [source,clojure]
 ----
 [buddy/buddy-hashers "1.4.0"]
 ----
 
-And is tested under JDK8.
+This has been tested with JDK 8.
 
 
 [[quickstart]]
 == Quick Start
 
-Hashers module consists in two public functions: *derive* and *check* and both
-them are located on `buddy.hashers` namespace.
+The `hashers` namespace consists of two public functions: *derive* and *check*.
+Both of these are located in the `buddy.hashers` namespace.
 
-Let start deriving a password:
+Let's start by deriving a password:
 
 [source,clojure]
 ----
@@ -70,9 +70,9 @@ Let start deriving a password:
 ;; => true
 ----
 
-If no algorithm is specified, the `:bcrypt+sha512` will be used by default.
-If you want to use a specific one, you can specify it using the optional options
-parameter:
+If no algorithm is specified, `:bcrypt+sha512` will be used.
+If you want to use a specific algorithm, you can specify it using the optional
+`options` parameter:
 
 [source,clojure]
 ----
@@ -80,18 +80,19 @@ parameter:
 (hashers/derive "secretpassword" {:alg :pbkdf2+sha256})
 ;; => "pbkdf2+sha256$4i9sd34m..."
 
+;; Verify the password against the hash
 (hashers/check "secretpassword" "pbkdf2+sha256$4i9sd34m...")
 ;; => true
 ----
 
-== Advanced options
+== Advanced Options
 
-=== Algorithm tunning params
+=== Algorithm Tuning Parameters
 
-Each algorithm can be tweaked passing additional parameters on the second argument
-to *derive* function. And options vary depending on the used algorithm.
+Each algorithm can be tweaked by passing additional parameters in the second
+argument to *derive*. Which options are valid depends on the algorithm in use.
 
-.Table that deails available options and their defaults
+.Table of available options and their defaults
 [options="header", cols="2,2,4"]
 |==========================================================
 | Algorithm | Available options | Defaults
@@ -107,11 +108,10 @@ to *derive* function. And options vary depending on the used algorithm.
 |==========================================================
 
 
-=== Limiting algorithms
+=== Limiting Algorithms
 
-Some times you don't want to use all the supported algorithms and you only want
-to use a own set of algorithms in the password check process. That can be done
-passing additional parameter to the `check` function:
+Sometimes you want to limit the set of algorithms used. This can be accomplished
+by passing additional parameter to the `check` function:
 
 [source, clojure]
 ----
@@ -120,21 +120,21 @@ passing additional parameter to the `check` function:
 (hashers/check incoming-pwd derived-pwd {:limit trusted-algs})
 ----
 
-The `check` function will return false if the incoming password uses an algorithm
-that does not allowed.
+The *check* function returns `false` if the given password uses an algorithm
+that is not allowed.
 
 
 === Rehash Hook
 
-Choice a strong algorithm is important thing, but have a good update
-password-hashes policy is also very important and usually completelly forgotten.
-The password generated 3 years ago is weaker that one generated today...
+Choosing a strong hashing algorithm is important, but having a policy for
+updating password hashes is also very important and often completely forgotten.
+A password generated 3 years ago is often weaker than one generated today...
 
-*buddy-hashers* comes with a solution for make this task easier. It consists in
-a setter hook that will be called when weaker password is detected, enabling for
-you the entry point for rehash the password and store it again to the database.
+*buddy-hashers* comes with a solution for making this task easier. It consists of
+a setter hook that will be called when weaker password is detected, enabling you
+to rehash the password and store the new hash.
 
-It there is an example on how it can be used:
+Here's an example of how it may be used:
 
 [source, clojure]
 ----
@@ -148,7 +148,7 @@ The setter will be called when the incoming password is valid but its config
 is weaker that the current default one.
 
 
-== Developers Guide
+== Developer Guide
 
 === Philosophy
 
@@ -182,9 +182,9 @@ git clone https://github.com/funcool/buddy-hashers
 ----
 
 
-=== Run tests
+=== Running tests
 
-For running tests just execute this:
+To run the tests, just execute this:
 
 [source,bash]
 ----
@@ -194,5 +194,5 @@ lein test
 
 === License
 
-_buddy-hashers_ is licensed under Apache 2.0 License. You can see the complete text
-of the license on the root of the repository on `LICENSE` file.
+_buddy-hashers_ is licensed under the Apache 2.0 License. The complete license text
+is a available in the `LICENSE` file in the repository root.
