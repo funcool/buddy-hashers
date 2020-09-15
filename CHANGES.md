@@ -1,10 +1,19 @@
 # Changelog
 
+## Version 1.5.0
+
+Date: 2020-09-15
+
+- Update buddy-core to 1.7.1
+- Remove unused internal BCrypt impl.
+- Remove deprecated `:pbkdf2+sha3_256` alias.
+- Fix documentation.
+
 ## Version 1.4.0
 
 Date: 2019-06-28
 
-Update buddy-core to 1.6.0
+- Update buddy-core to 1.6.0
 
 
 ## Version 1.3.0

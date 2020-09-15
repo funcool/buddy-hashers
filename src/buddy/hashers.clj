@@ -37,7 +37,6 @@
    :pbkdf2+sha256 100000
    :pbkdf2+sha512 100000
    :pbkdf2+blake2b-512 50000
-   :pbkdf2+sha3_256 5000
    :pbkdf2+sha3-256 5000
    :bcrypt+sha512 12
    :bcrypt+sha384 12
@@ -116,21 +115,6 @@
 (defmethod derive-password :pbkdf2+sha3-256
   [options]
   (derive-password (assoc options :alg :pbkdf2 :digest :sha3-256)))
-
-;; DEPRECATED: this is an alias for :pbkdf2+sha3-256 and should be consdered
-;; deprecated. It will be removed in the next version.
-
-(defmethod derive-password :pbkdf2+sha3_256
-  [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get +iterations+ alg))
-        pgen (doto (PKCS5S2ParametersGenerator. (SHA3Digest. 256))
-               (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen 256))]
-    {:alg alg
-     :password password
-     :salt salt
-     :iterations iterations}))
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations]}]
