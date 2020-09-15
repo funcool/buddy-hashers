@@ -52,8 +52,8 @@ Let start deriving a password:
 (hashers/derive "secretpassword")
 ;; => "bcrypt+sha512$4i9sd34m..."
 
-(hashers/check "secretpassword" "bcrypt+sha512$4i9sd34m...")
-;; => true
+(hashers/verify "secretpassword" "bcrypt+sha512$4i9sd34m...")
+;; => {:valid true :update false}
 ```
 
 If no algorithm is specified, the `:bcrypt+sha512` will be used by
@@ -68,8 +68,8 @@ the optional options parameter:
 (hashers/derive "secretpassword" {:alg :pbkdf2+sha256})
 ;; => "pbkdf2+sha256$4i9sd34m..."
 
-(hashers/check "secretpassword" "pbkdf2+sha256$4i9sd34m...")
-;; => true
+(hashers/verify "secretpassword" "pbkdf2+sha256$4i9sd34m...")
+;; => {:valid true :update false}
 ```
 
 ## Advanced options
@@ -104,36 +104,32 @@ passing additional parameter to the `check` function:
 ```clojure
 (def trusted-algs #{:pbkdf2+sha256 :bcrypt+sha512})
 
-(hashers/check incoming-pwd derived-pwd {:limit trusted-algs})
+(hashers/verify incoming-pwd derived-pwd {:limit trusted-algs})
 ```
 
-The `check` function will return false if the incoming password uses an algorithm
+The `verify` function will return false if the incoming password uses an algorithm
 that does not allowed.
 
 
-### Rehash Hook
+### Password updating
 
 Choice a strong algorithm is important thing, but have a good update
 password-hashes policy is also very important and usually completelly
 forgotten.  The password generated 3 years ago is weaker that one
 generated today...
 
-*buddy-hashers* comes with a solution for make this task easier. It
-consists in a setter hook that will be called when weaker password is
-detected, enabling for you the entry point for rehash the password and
-store it again to the database.
+*buddy-hashers* comes with a solution for make this task easier. The returned
+object by the `verify` function contains a prop `:update` that indicates
+if the password should be updated or not.
 
 It there is an example on how it can be used:
 
 ```clojure
-(letfn [(setter [pwd]
-          (let [pwd (hashers/derive pwd)]
-            (do-the-db-update pwd)))]
-  (hashers/check incoming-pwd derived-pwd {:setter setter}))
+(let [result (hashers/verify incoming-pwd derived-pwd)]
+  (when (:valid result)
+    (when (:update result)
+      (do-db-update (hashers/derive incoming-pwd)))))
 ```
-
-The setter will be called when the incoming password is valid but its
-config is weaker that the current default one.
 
 
 ## Source Code
