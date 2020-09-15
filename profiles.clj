@@ -9,7 +9,7 @@
           :output-path "doc/dist/latest/"
           :doc-paths ["doc/"]
           :themes [:rdash]
-          :source-paths ["src"]
+          :source-paths ["src/clj"]
           :source-uri "https://github.com/funcool/buddy-hashers/blob/master/{filepath}#L{line}"
           :namespaces [#"^buddy\."]}}
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.5.1
+
+Date: 2020-09-15
+
+- Revert some breaking changes from previous version.
+
+
 ## Version 1.5.0
 
 Date: 2020-09-15
