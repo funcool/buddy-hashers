@@ -20,11 +20,25 @@
             [buddy.core.codecs :as codecs]
             [buddy.hashers :as hashers]))
 
-(deftest buddy-hashers
+(deftest buddy-hashers-check
   (let [pwd "my-test-password"]
     (are [alg]
         (let [result (hashers/encrypt pwd {:alg alg})]
           (hashers/check pwd result))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha512
+      :pbkdf2+blake2b-512
+      :bcrypt+sha512
+      :bcrypt+sha384
+      :bcrypt+blake2b-512
+      :scrypt)))
+
+(deftest buddy-hashers-verify
+  (let [pwd "my-test-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd {:alg alg})]
+          (true? (:valid (hashers/verify pwd result))))
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
@@ -40,6 +54,22 @@
     (are [alg]
         (let [result (hashers/encrypt pwd-good {:alg alg})]
           (not (hashers/check pwd-bad result)))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha512
+      :pbkdf2+sha3-256
+      :pbkdf2+blake2b-512
+      :bcrypt+sha512
+      :bcrypt+sha384
+      :bcrypt+blake2b-512
+      :scrypt)))
+
+(deftest confirm-verify-failure
+  (let [pwd-good "my-test-password"
+        pwd-bad "my-text-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd-good {:alg alg})]
+          (not (:valid (hashers/check pwd-bad result))))
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
@@ -92,18 +122,31 @@
       :bcrypt+blake2b-512
       :scrypt)))
 
-(deftest limit-available-algorithms
-  (let [pwd (hashers/encrypt "hello" {:alg :scrypt})
+(deftest limit-available-algorithms-check
+  (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
         limit #{:pbkdf2+sha256 :bcrypt+sha512}]
     (is (hashers/check "hello" pwd))
     (is (not (hashers/check "hello" pwd {:limit limit})))))
 
-(deftest update-policy-generic
+(deftest limit-available-algorithms-verify
+  (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
+        limit #{:pbkdf2+sha256 :bcrypt+sha512}]
+    (is (:valid (hashers/verify "hello" pwd)))
+    (is (not (:valid (hashers/verify "hello" pwd {:limit limit}))))))
+
+(deftest update-policy-generic-check
   (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
                                       :iterations 10})
         p (promise)]
     (is (hashers/check "hello" pwd {:setter #(deliver p %)}))
     (is (= (deref p 10 nil) "hello"))))
+
+(deftest update-policy-generic-verify
+  (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
+                                      :iterations 10})
+        res (hashers/verify "hello" pwd)]
+    (is (true? (:valid res)))
+    (is (true? (:update res)))))
 
 (deftest update-policy-for-pbkdf2+sha256
   (let [pwd-legacy "pbkdf2+sha256$7d0994313982465d82372493$100000$98c4b3043b30622917516e97d1c6bd9936337e8c"

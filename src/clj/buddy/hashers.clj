@@ -318,9 +318,13 @@
        (derive-password)
        (format-password))))
 
+(def encrypt
+  "Backward compatibility alias for `derive`."
+  derive)
+
 (defn check
-  "Check if a unencrypted password matches
-  with another encrypted password."
+  "Check if a unencrypted password matches with another encrypted
+  password."
   ([attempt encrypted]
    (check attempt encrypted {}))
   ([attempt encrypted {:keys [limit setter prefered]}]
@@ -334,7 +338,22 @@
              (setter attempt))
            result))))))
 
+(defn verify
+  "Check if a unencrypted password matches with another encrypted
+  password. Analogous to `check` with different call signature."
+  ([attempt encrypted]
+   (verify attempt encrypted {}))
+  ([attempt encrypted {:keys [limit prefered]}]
+   (when-not (and attempt encrypted)
+     (throw (java.lang.IllegalArgumentException. "invalid arguments")))
 
-(def encrypt
-  "Backward compatibility alias for `derive`."
-  derive)
+   (let [pparams (parse-password encrypted)
+         attempt (codecs/str->bytes attempt)
+         result  (check-password pparams attempt)]
+     (if (and (set? limit)
+              (not (limit (:alg pparams))))
+       {:valid false
+        :update false}
+       {:valid result
+        :update (and result (must-update? pparams))}))))
+

@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.6.0
+
+Date: 2020-09-15
+
+- Add `verify` function as better alternative to `check`.
+
+
 ## Version 1.5.1
 
 Date: 2020-09-15
