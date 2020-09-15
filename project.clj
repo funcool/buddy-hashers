@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.1" :scope "provided"]
                  [buddy/buddy-core "1.7.1"]
                  [clojurewerkz/scrypt "1.2.0"]]
+  :jar-name "buddy-hashers.jar"
   :source-paths ["src"]
   :javac-options ["-target" "1.8" "-source" "1.8" "-Xlint:-options"]
   :test-paths ["test"])
