@@ -32,7 +32,8 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 (deftest buddy-hashers-verify
   (let [pwd "my-test-password"]
@@ -46,7 +47,8 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 (deftest confirm-check-failure
   (let [pwd-good "my-test-password"
@@ -62,7 +64,8 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 (deftest confirm-verify-failure
   (let [pwd-good "my-test-password"
@@ -78,7 +81,8 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 (deftest buddy-hashers-nil
   (let [pwd "my-test-password"
@@ -100,7 +104,8 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 ;; Confirm that the algorithm used is always embedded at the
 ;; start of the hash, and that the salt is also appended (after
@@ -120,7 +125,8 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 (deftest limit-available-algorithms-check
   (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
@@ -184,7 +190,8 @@
         bcrypt+blake2b-512 "bcrypt+blake2b-512$95d0488b2b69c79d4f48ab39338c322e$12$40a4ef31b6dd390b27bd6fc3c2fdeabfb1db85c9bef25c22"
         bcrypt+sha512-legacy "bcrypt+sha512$680bf9ad0bf9f8249bfebb85$12$243261243132244b4e2e4e456650704558323964686e6c64644f4b73656a6879584f635a4f6b7778596132475036772e6c2e784f49596631556f7679"
         bcrypt+sha512 "bcrypt+sha512$b932bf208c7f3ecb563eebe89c39115b$12$bc3633d1f07c47edd91f0e7cf5649b040ea868cec63cda31"
-        bcrypt+sha384 "bcrypt+sha384$5c3b8cc880e0dd91520a900a8c8c6223$12$fa6e0a810b81b04634b19311e77eb00ba1d0f12c570adafa"]
+        bcrypt+sha384 "bcrypt+sha384$5c3b8cc880e0dd91520a900a8c8c6223$12$fa6e0a810b81b04634b19311e77eb00ba1d0f12c570adafa"
+        argon2id "argon2id$9682763587dcaf962161d4b24d7246b3$65536$2$1$4181787747eb7330abda8f42b2fb0dfab207e5cf0c0031a2233a00484d739c8c"]
     (is (hashers/check "test" pbkdf2+sha1))
     (is (hashers/check "test" pbkdf2+sha256))
     (is (hashers/check "test" pbkdf2+sha256-legacy))
@@ -196,6 +203,7 @@
     (is (hashers/check "test" bcrypt+sha512))
     (is (hashers/check "test" bcrypt+sha384))
     (is (hashers/check "test" bcrypt+blake2b-512))
+    (is (hashers/check "test" argon2id))
     ))
 
 (deftest debug-time-bench
@@ -213,5 +221,6 @@
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
