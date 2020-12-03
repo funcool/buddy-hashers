@@ -20,7 +20,7 @@
             [buddy.core.codecs :as codecs]
             [buddy.hashers :as hashers]))
 
-(deftest buddy-hashers
+(deftest buddy-hashers-check
   (let [pwd "my-test-password"]
     (are [alg]
         (let [result (hashers/encrypt pwd {:alg alg})]
@@ -28,12 +28,27 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
-      :pbkdf2+sha3_256
       :pbkdf2+blake2b-512
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
+
+(deftest buddy-hashers-verify
+  (let [pwd "my-test-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd {:alg alg})]
+          (true? (:valid (hashers/verify pwd result))))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha512
+      :pbkdf2+blake2b-512
+      :bcrypt+sha512
+      :bcrypt+sha384
+      :bcrypt+blake2b-512
+      :scrypt
+      :argon2id)))
 
 (deftest confirm-check-failure
   (let [pwd-good "my-test-password"
@@ -44,13 +59,30 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
-      :pbkdf2+sha3_256
       :pbkdf2+sha3-256
       :pbkdf2+blake2b-512
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
+
+(deftest confirm-verify-failure
+  (let [pwd-good "my-test-password"
+        pwd-bad "my-text-password"]
+    (are [alg]
+        (let [result (hashers/encrypt pwd-good {:alg alg})]
+          (not (:valid (hashers/check pwd-bad result))))
+      :pbkdf2+sha1
+      :pbkdf2+sha256
+      :pbkdf2+sha512
+      :pbkdf2+sha3-256
+      :pbkdf2+blake2b-512
+      :bcrypt+sha512
+      :bcrypt+sha384
+      :bcrypt+blake2b-512
+      :scrypt
+      :argon2id)))
 
 (deftest buddy-hashers-nil
   (let [pwd "my-test-password"
@@ -67,13 +99,13 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
-      :pbkdf2+sha3_256
       :pbkdf2+sha3-256
       :pbkdf2+blake2b-512
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
 ;; Confirm that the algorithm used is always embedded at the
 ;; start of the hash, and that the salt is also appended (after
@@ -88,26 +120,39 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
-      :pbkdf2+sha3_256
       :pbkdf2+sha3-256
       :pbkdf2+blake2b-512
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 
-(deftest limit-available-algorithms
-  (let [pwd (hashers/encrypt "hello" {:alg :scrypt})
+(deftest limit-available-algorithms-check
+  (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
         limit #{:pbkdf2+sha256 :bcrypt+sha512}]
     (is (hashers/check "hello" pwd))
     (is (not (hashers/check "hello" pwd {:limit limit})))))
 
-(deftest update-policy-generic
+(deftest limit-available-algorithms-verify
+  (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
+        limit #{:pbkdf2+sha256 :bcrypt+sha512}]
+    (is (:valid (hashers/verify "hello" pwd)))
+    (is (not (:valid (hashers/verify "hello" pwd {:limit limit}))))))
+
+(deftest update-policy-generic-check
   (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
                                       :iterations 10})
         p (promise)]
     (is (hashers/check "hello" pwd {:setter #(deliver p %)}))
     (is (= (deref p 10 nil) "hello"))))
+
+(deftest update-policy-generic-verify
+  (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
+                                      :iterations 10})
+        res (hashers/verify "hello" pwd)]
+    (is (true? (:valid res)))
+    (is (true? (:update res)))))
 
 (deftest update-policy-for-pbkdf2+sha256
   (let [pwd-legacy "pbkdf2+sha256$7d0994313982465d82372493$100000$98c4b3043b30622917516e97d1c6bd9936337e8c"
@@ -138,7 +183,6 @@
         pbkdf2+sha256-legacy "pbkdf2+sha256$7d0994313982465d82372493$100000$98c4b3043b30622917516e97d1c6bd9936337e8c"
         pbkdf2+sha256 "pbkdf2+sha256$092c7d26206ae9641d225ca432a9efcf$100000$76417ba855c352750319ae649141082bfa83e18ba3a4937580ae7d0226168c6a"
         pbkdf2+sha512 "pbkdf2+sha512$50577ebbbe53552a270598fd$100000$ee0b82c8887fc4bac8e8a28a785e2c7d679fc87a4c42478302ae40acad84aae77fdd2bce57b75595250c1a0226dbbdc4b94954ec61c7d2188d82ea15bce67af5"
-        pbkdf2+sha3_256 "pbkdf2+sha3_256$1278c96b4e68b98c633041dc$5000$d89f67636fec62cdd8379f8ff9305bece38f09b20659916d41cf91eacd91a85b"
         pbkdf2+sha3-256 "pbkdf2+sha3-256$1278c96b4e68b98c633041dc$5000$d89f67636fec62cdd8379f8ff9305bece38f09b20659916d41cf91eacd91a85b"
         pbkdf2+blake2b-512 "pbkdf2+blake2b-512$1a26daa54a09150de9f5a053$5000$2fe5dde2355a179f88969218466cd587681af2ce7d6de07080d94efab7cec9e091b7b1c3a34311ff72a3a883f261619b67583c1742f661bb3ab65bc4402fd4c1"
         scrypt "scrypt$f54d4b5a1e8d8e63c82e1553$65536$8$1$24733024313030383031246850416d5378645243726664336350546b5a4c7330413d3d243448376945454c47395155492f2b477a42735a582f76554f3345495248656c6939734a73516c356e6571413d"
@@ -146,12 +190,12 @@
         bcrypt+blake2b-512 "bcrypt+blake2b-512$95d0488b2b69c79d4f48ab39338c322e$12$40a4ef31b6dd390b27bd6fc3c2fdeabfb1db85c9bef25c22"
         bcrypt+sha512-legacy "bcrypt+sha512$680bf9ad0bf9f8249bfebb85$12$243261243132244b4e2e4e456650704558323964686e6c64644f4b73656a6879584f635a4f6b7778596132475036772e6c2e784f49596631556f7679"
         bcrypt+sha512 "bcrypt+sha512$b932bf208c7f3ecb563eebe89c39115b$12$bc3633d1f07c47edd91f0e7cf5649b040ea868cec63cda31"
-        bcrypt+sha384 "bcrypt+sha384$5c3b8cc880e0dd91520a900a8c8c6223$12$fa6e0a810b81b04634b19311e77eb00ba1d0f12c570adafa"]
+        bcrypt+sha384 "bcrypt+sha384$5c3b8cc880e0dd91520a900a8c8c6223$12$fa6e0a810b81b04634b19311e77eb00ba1d0f12c570adafa"
+        argon2id "argon2id$9682763587dcaf962161d4b24d7246b3$65536$2$1$4181787747eb7330abda8f42b2fb0dfab207e5cf0c0031a2233a00484d739c8c"]
     (is (hashers/check "test" pbkdf2+sha1))
     (is (hashers/check "test" pbkdf2+sha256))
     (is (hashers/check "test" pbkdf2+sha256-legacy))
     (is (hashers/check "test" pbkdf2+sha512))
-    (is (hashers/check "test" pbkdf2+sha3_256))
     (is (hashers/check "test" pbkdf2+sha3-256))
     (is (hashers/check "test" scrypt))
     (is (hashers/check "test" pbkdf2+blake2b-512))
@@ -159,6 +203,7 @@
     (is (hashers/check "test" bcrypt+sha512))
     (is (hashers/check "test" bcrypt+sha384))
     (is (hashers/check "test" bcrypt+blake2b-512))
+    (is (hashers/check "test" argon2id))
     ))
 
 (deftest debug-time-bench
@@ -171,11 +216,11 @@
       :pbkdf2+sha1
       :pbkdf2+sha256
       :pbkdf2+sha512
-      :pbkdf2+sha3_256
       :pbkdf2+sha3-256
       :pbkdf2+blake2b-512
       :bcrypt+sha512
       :bcrypt+sha384
       :bcrypt+blake2b-512
-      :scrypt)))
+      :scrypt
+      :argon2id)))
 

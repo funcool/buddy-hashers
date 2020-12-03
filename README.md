@@ -1,11 +1,10 @@
-# buddy-hashers
-
-[![Travis Badge](https://img.shields.io/travis/funcool/buddy-hashers.svg?style=flat)](https://travis-ci.org/funcool/buddy-hashers "Travis Badge")
-[![Dependencies Status](http://jarkeeper.com/funcool/buddy-hashers/status.svg)](http://jarkeeper.com/funcool/buddy-hashers)
-
-*buddy-hashers* module is dedicated to provide a collection of secure password hashers functions.
-
 [![Clojars Project](http://clojars.org/buddy/buddy-hashers/latest-version.svg)](http://clojars.org/buddy/buddy-hashers)
+
+# buddy-hashers - password hashers for Clojure
+
+*buddy-hashers* provides a collection of secure password hashers with
+lightweight and extensible abstraction for build powerfull password
+authentication processes.
 
 See the [documentation](https://funcool.github.io/buddy-hashers/latest/) for more detailed
 information.
