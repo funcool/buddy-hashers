@@ -173,18 +173,18 @@
 
 (defmethod derive-password :argon2id
   [{:keys [alg password salt memory iterations parallelism] :as pwdparams}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
-        memory (or memory (get-in +iterations+ [:argon2id :memory])) ;; KiB
-        iterations (or iterations (get-in +iterations+ [:argon2id :iterations]))
+  (let [salt        (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        memory      (or memory (get-in +iterations+ [:argon2id :memory])) ;; KiB
+        iterations  (or iterations (get-in +iterations+ [:argon2id :iterations]))
         parallelism (or parallelism 1)
-        params (-> (Argon2Parameters$Builder. Argon2Parameters/ARGON2_id)
-                   (.withSalt salt)
-                   (.withMemoryAsKB memory)
-                   (.withIterations iterations)
-                   (.withParallelism parallelism)
-                   (.build))
-        generator (Argon2BytesGenerator.)
-        hash (byte-array 32)]
+        params      (-> (Argon2Parameters$Builder. Argon2Parameters/ARGON2_id)
+                        (.withSalt salt)
+                        (.withMemoryAsKB memory)
+                        (.withIterations iterations)
+                        (.withParallelism parallelism)
+                        (.build))
+        generator   (Argon2BytesGenerator.)
+        hash       (byte-array 32)]
     (.init generator params)
     (.generateBytes generator ^bytes password hash)
     {:alg alg
@@ -389,7 +389,7 @@
        (if (and (set? limit) (not (contains? limit (:alg pwdparams))))
          false
          (let [attempt' (codecs/str->bytes attempt)
-               result (check-password pwdparams attempt')]
+               result   (check-password pwdparams attempt')]
            (when (and result (fn? setter) (must-update? pwdparams))
              (setter attempt))
            result))))))

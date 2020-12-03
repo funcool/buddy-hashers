@@ -1,5 +1,13 @@
 # Changelog
 
+## Version 1.7.0
+
+Date: 2020-09-15
+
+- Update buddy-core to 1.9.0
+- Add native argon2id.
+
+
 ## Version 1.6.0
 
 Date: 2020-09-15

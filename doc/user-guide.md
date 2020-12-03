@@ -9,10 +9,11 @@ Supported password hashers algorithms:
 | Identifier | Can I use it? | Description |
 |---|---|---|
 | `:bcrypt+blake2b-512` | Recommended | BCrypt password hasher combined with blake2b-512 |
-| `:pbkdf2+blake2b-512` | Recommended | Password-Based Key Derivation Function 2 with blake2b-512|
-| `:pbkdf2+sha512`   | Recommended | Password-Based Key Derivation Function 2 with SHA256 |
-| `:pbkdf2+sha3-256` | Recommended | Password-Based Key Derivation Function 2 with SHA3-256 |
-| `:bcrypt+sha512`   | Recommended | BCrypt password hasher combined with sha512 (default) |
+| `:argon2id` | Recommended | Argon2id password hasher |
+| `:pbkdf2+blake2b-512` | Yes | Password-Based Key Derivation Function 2 with blake2b-512|
+| `:pbkdf2+sha512`   | Yes | Password-Based Key Derivation Function 2 with SHA256 |
+| `:pbkdf2+sha3-256` | Yes | Password-Based Key Derivation Function 2 with SHA3-256 |
+| `:bcrypt+sha512`   | Yes | BCrypt password hasher combined with sha512 (default) |
 | `:pbkdf2+sha256`   | Yes | Password-Based Key Derivation Function 2 with SHA256 |
 | `:bcrypt+sha384`   | Yes | BCrypt password hasher combined with sha384 |
 | `:pbkdf2+sha1`     | Yes | Password-Based Key Derivation Function 2 (as defined in RFC2898) |
@@ -26,13 +27,13 @@ The simplest way to use _buddy-core_ in a clojure project, is by including it in
 dependency vector on your *_project.clj_* file:
 
 ```clojure
-[buddy/buddy-hashers "1.6.0"]
+[buddy/buddy-hashers "1.7.0"]
 ```
 
 Or deps.edn:
 
 ```clojure
-buddy/buddy-hashers {:mvn/version "1.6.0"}
+buddy/buddy-hashers {:mvn/version "1.7.0"}
 ```
 
 And is tested under JDK >= 8
