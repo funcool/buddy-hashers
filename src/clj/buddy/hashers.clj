@@ -25,6 +25,9 @@
            org.bouncycastle.crypto.digests.SHA3Digest
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
            org.bouncycastle.crypto.generators.BCrypt
+           org.bouncycastle.crypto.generators.Argon2BytesGenerator
+           org.bouncycastle.crypto.params.Argon2Parameters
+           org.bouncycastle.crypto.params.Argon2Parameters$Builder
            java.security.Security))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,7 +45,9 @@
    :bcrypt+sha384 12
    :bcrypt+blake2b-512 12
    :scrypt {:cpucost 65536
-            :memcost 8}})
+            :memcost 8}
+   :argon2id {:memory 65536
+              :iterations 2}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Impl Interface
@@ -166,6 +171,29 @@
      :password password
      :salt salt}))
 
+(defmethod derive-password :argon2id
+  [{:keys [alg password salt memory iterations parallelism] :as pwdparams}]
+  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        memory (or memory (get-in +iterations+ [:argon2id :memory])) ;; KiB
+        iterations (or iterations (get-in +iterations+ [:argon2id :iterations]))
+        parallelism (or parallelism 1)
+        params (-> (Argon2Parameters$Builder. Argon2Parameters/ARGON2_id)
+                   (.withSalt salt)
+                   (.withMemoryAsKB memory)
+                   (.withIterations iterations)
+                   (.withParallelism parallelism)
+                   (.build))
+        generator (Argon2BytesGenerator.)
+        hash (byte-array 32)]
+    (.init generator params)
+    (.generateBytes generator ^bytes password hash)
+    {:alg alg
+     :memory memory
+     :iterations iterations
+     :parallelism parallelism
+     :password hash
+     :salt salt}))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Verification
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -237,6 +265,12 @@
         password (codecs/bytes->hex password)]
     (format "scrypt$%s$%s$%s$%s$%s" salt cpucost memcost parallelism password)))
 
+(defmethod format-password :argon2id
+  [{:keys [password salt memory iterations parallelism]}]
+  (let [salt (codecs/bytes->hex salt)
+        password (codecs/bytes->hex password)]
+    (format "argon2id$%s$%s$%s$%s$%s" salt memory iterations parallelism password)))
+
 (defmethod format-password :default
   [{:keys [alg password salt iterations]}]
   (let [algname (name alg)
@@ -261,6 +295,19 @@
      :password (codecs/hex->bytes password)
      :cpucost (Integer/parseInt cc)
      :memcost (Integer/parseInt mc)
+     :parallelism (Integer/parseInt pll)}))
+
+(defmethod parse-password :argon2id
+  [encryptedpassword]
+  (let [[alg salt mem iters pll password] (str/split encryptedpassword #"\$")
+        alg (keyword alg)]
+    (if (some nil? [salt mem iters pll password])
+      (throw (ex-info "Malformed hash" {})))
+    {:alg alg
+     :salt (codecs/hex->bytes salt)
+     :password (codecs/hex->bytes password)
+     :memory (Integer/parseInt mem)
+     :iterations (Integer/parseInt iters)
      :parallelism (Integer/parseInt pll)}))
 
 (defmethod parse-password :default
@@ -303,6 +350,15 @@
          desired-memcost
          (or (> desired-memcost memcost)
              (> desired-cpucost cpucost)))))
+
+(defmethod must-update? :argon2id
+  [{:keys [alg memory iterations]}]
+  (let [desired-memory (get-in +iterations+ [:argon2id :memory])
+        desired-iterations (get-in +iterations+ [:argon2id :iterations])]
+    (and desired-memory
+         desired-iterations
+         (or (> desired-memory memory)
+             (> desired-iterations iterations)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public Api

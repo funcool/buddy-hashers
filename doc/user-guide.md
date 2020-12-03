@@ -17,6 +17,7 @@ Supported password hashers algorithms:
 | `:bcrypt+sha384`   | Yes | BCrypt password hasher combined with sha384 |
 | `:pbkdf2+sha1`     | Yes | Password-Based Key Derivation Function 2 (as defined in RFC2898) |
 | `:scrypt`          | Yes | Password-Based Key Derivation Function created by Colin Percival |
+| `:argon2id`        | Yes | Memory-Hard Key Derivation Function for password hashing and other applications |
 
 
 ## Install
@@ -93,6 +94,7 @@ Table that deails available options and their defaults:
 | `:scrypt` | `:salt`, `:cpucost`, `:memcost`, `:parallelism` | salt=(random 12 bytes), cpucost=65536, memcost=8, parallelism=1 |
 | `:bcrypt+sha512` | `:salt`, `:iterations` | iterations=12, salt=(random 12 bytes) |
 | `:pbkdf2+sha256` | `:salt`, `:iterations` | iterations=100000, salt=(random 12 bytes) |
+| `:argon2id` | `:salt`, `:memory`, `:iterations`, `:parallelism` | salt=(random 16 bytes), memory=65536, iterations=2, parallelism=1 |
 
 
 ### Limiting algorithms
