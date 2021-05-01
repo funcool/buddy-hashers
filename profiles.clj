@@ -1,8 +1,8 @@
 {:dev
  {:aliases {"test-all" ["with-profile" "dev:dev,1.9:dev,1.8:dev,1.7:dev,1.6:dev,1.5" "test"]}
   :plugins [[lein-codox "0.10.7"]
-            [lein-ancient "0.6.15"]]
-  :dependencies [[org.clojure/tools.reader "1.1.0"]
+            [lein-ancient "0.7.0"]]
+  :dependencies [[org.clojure/tools.reader "1.3.5"]
                  [codox-theme-rdash "0.1.2"]]
   :codox {:project {:name "buddy-hashers"}
           :metadata {:doc/format :markdown}
