@@ -27,13 +27,13 @@ The simplest way to use _buddy-core_ in a clojure project, is by including it in
 dependency vector on your *_project.clj_* file:
 
 ```clojure
-[buddy/buddy-hashers "1.8.0"]
+[buddy/buddy-hashers "1.8.1"]
 ```
 
 Or deps.edn:
 
 ```clojure
-buddy/buddy-hashers {:mvn/version "1.7.0"}
+buddy/buddy-hashers {:mvn/version "1.8.1"}
 ```
 
 And is tested under JDK >= 8
@@ -82,7 +82,7 @@ Each algorithm can be tweaked passing additional parameters on the
 second argument to *derive* function. And options vary depending on
 the used algorithm.
 
-Table that deails available options and their defaults:
+Table that details available options and defaults values:
 
 | Algorithm | Available options | Defaults |
 |---|---|---|
@@ -161,11 +161,3 @@ lein test
 _buddy-hashers_ is licensed under Apache 2.0 License. You can see the
 complete text of the license on the root of the repository on
 `LICENSE` file.
-
-
-
-
-
-
-See the [documentation](https://funcool.github.io/buddy-hashers/latest/) for more detailed
-information.
