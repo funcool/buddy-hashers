@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 1.8.158
+
+Date: 2022-01-14
+
+- Update dependencies.
+
+
 ## Version 1.8.1
 
 Date: 2021-05-02
