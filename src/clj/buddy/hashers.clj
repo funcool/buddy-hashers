@@ -370,7 +370,7 @@
   ([password options]
    (-> (assoc options
               :alg (:alg options :bcrypt+sha512)
-              :password (codecs/str->bytes password))
+              :password (codecs/to-bytes password))
        (derive-password)
        (format-password))))
 
@@ -388,7 +388,7 @@
      (let [pwdparams (parse-password encrypted)]
        (if (and (set? limit) (not (contains? limit (:alg pwdparams))))
          false
-         (let [attempt' (codecs/str->bytes attempt)
+         (let [attempt' (codecs/to-bytes attempt)
                result   (check-password pwdparams attempt')]
            (when (and result (fn? setter) (must-update? pwdparams))
              (setter attempt))
@@ -404,7 +404,7 @@
      (throw (java.lang.IllegalArgumentException. "invalid arguments")))
 
    (let [pparams (parse-password encrypted)
-         attempt (codecs/str->bytes attempt)
+         attempt (codecs/to-bytes attempt)
          result  (check-password pparams attempt)]
      (if (and (set? limit)
               (not (limit (:alg pparams))))
