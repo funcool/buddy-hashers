@@ -20,11 +20,13 @@
             [buddy.core.bytes :as bytes]
             [clojure.string :as str]
             [clojurewerkz.scrypt.core :as scrypt])
-  (:import org.bouncycastle.crypto.digests.SHA1Digest
+  (:import org.bouncycastle.crypto.Digest
+           org.bouncycastle.crypto.digests.SHA1Digest
            org.bouncycastle.crypto.digests.SHA256Digest
            org.bouncycastle.crypto.digests.SHA3Digest
            org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
            org.bouncycastle.crypto.generators.BCrypt
+           org.bouncycastle.crypto.params.KeyParameter
            org.bouncycastle.crypto.generators.Argon2BytesGenerator
            org.bouncycastle.crypto.params.Argon2Parameters
            org.bouncycastle.crypto.params.Argon2Parameters$Builder
@@ -91,11 +93,12 @@
   (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
         alg (keyword (str "pbkdf2+" (name digest)))
         iterations (or iterations (get +iterations+ alg))
-        digest (hash/resolve-digest-engine digest)
+        ^Digest digest (hash/resolve-digest-engine digest)
         dsize (* 8 (.getDigestSize digest))
         pgen (doto (PKCS5S2ParametersGenerator. digest)
                (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen dsize))]
+        ^KeyParameter cparams (.generateDerivedParameters pgen dsize)
+        password (.getKey cparams)]
     {:alg alg
      :password password
      :salt salt
@@ -228,7 +231,8 @@
         iterations (or iterations (get +iterations+ alg))
         pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
                (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen 160))]
+        ^KeyParameter cparams (.generateDerivedParameters pgen 160)
+        password (.getKey cparams)]
     {:alg alg
      :password password
      :salt salt
@@ -412,4 +416,3 @@
         :update false}
        {:valid result
         :update (and result (must-update? pparams))}))))
-
