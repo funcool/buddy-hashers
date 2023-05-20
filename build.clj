@@ -41,6 +41,6 @@
    {:command-args ["mvn"
                    "deploy:deploy-file"
                    (str "-Dfile=" jar-file)
-                   "-DpomFile=target/classes/META-INF/maven/buddy/buddy-hashers/pom.xml"
+                   "-DpomFile=target/dist/META-INF/maven/buddy/buddy-hashers/pom.xml"
                    "-DrepositoryId=clojars"
                    "-Durl=https://clojars.org/repo/"]}))
