@@ -14,36 +14,39 @@
 
 (ns buddy.hashers
   (:refer-clojure :exclude [derive])
-  (:require [buddy.core.codecs :as codecs]
-            [buddy.core.hash :as hash]
-            [buddy.core.nonce :as nonce]
-            [buddy.core.bytes :as bytes]
-            [clojure.string :as str]
-            [clojurewerkz.scrypt.core :as scrypt])
-  (:import org.bouncycastle.crypto.digests.SHA1Digest
-           org.bouncycastle.crypto.digests.SHA256Digest
-           org.bouncycastle.crypto.digests.SHA3Digest
-           org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
-           org.bouncycastle.crypto.generators.BCrypt
-           org.bouncycastle.crypto.generators.Argon2BytesGenerator
-           org.bouncycastle.crypto.params.Argon2Parameters
-           org.bouncycastle.crypto.params.Argon2Parameters$Builder
-           java.security.Security))
+  (:require
+   [buddy.core.codecs :as codecs]
+   [buddy.core.hash :as hash]
+   [buddy.core.nonce :as nonce]
+   [buddy.core.bytes :as bytes]
+   [clojure.string :as str]
+   [clojurewerkz.scrypt.core :as scrypt])
+  (:import
+   java.security.Security
+   org.bouncycastle.crypto.Digest
+   org.bouncycastle.crypto.digests.SHA1Digest
+   org.bouncycastle.crypto.digests.SHA256Digest
+   org.bouncycastle.crypto.digests.SHA3Digest
+   org.bouncycastle.crypto.generators.Argon2BytesGenerator
+   org.bouncycastle.crypto.generators.BCrypt
+   org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator
+   org.bouncycastle.crypto.params.Argon2Parameters
+   org.bouncycastle.crypto.params.Argon2Parameters$Builder
+   org.bouncycastle.crypto.params.KeyParameter))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Constants
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:no-doc ^:static
-  +iterations+
-  {:pbkdf2+sha1 100000
-   :pbkdf2+sha256 100000
-   :pbkdf2+sha512 100000
-   :pbkdf2+blake2b-512 50000
-   :pbkdf2+sha3-256 5000
-   :bcrypt+sha512 12
-   :bcrypt+sha384 12
-   :bcrypt+blake2b-512 12
+(def ^:no-doc default-params
+  {:pbkdf2+sha1 {:iterations 100000}
+   :pbkdf2+sha256 {:iterations 100000}
+   :pbkdf2+sha512 {:iterations 100000}
+   :pbkdf2+blake2b-512 {:iterations 50000}
+   :pbkdf2+sha3-256 {:iterations 5000}
+   :bcrypt+sha512 {:iterations 12}
+   :bcrypt+sha384 {:iterations 12}
+   :bcrypt+blake2b-512 {:iterations 12}
    :scrypt {:cpucost 65536
             :memcost 8}
    :argon2id {:memory 65536
@@ -88,14 +91,15 @@
 
 (defmethod derive-password :pbkdf2
   [{:keys [alg password salt iterations digest] :as pwdparams}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
-        alg (keyword (str "pbkdf2+" (name digest)))
-        iterations (or iterations (get +iterations+ alg))
-        digest (hash/resolve-digest-engine digest)
-        dsize (* 8 (.getDigestSize digest))
-        pgen (doto (PKCS5S2ParametersGenerator. digest)
-               (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen dsize))]
+  (let [salt       (codecs/to-bytes (or salt (nonce/random-bytes 12)))
+        alg        (keyword (str "pbkdf2+" (name digest)))
+        iterations (or iterations (get-in default-params [alg :iterations]))
+        digest     (hash/resolve-digest-engine digest)
+        dsize      (* 8 (.getDigestSize ^Digest digest))
+        pgen       (doto (PKCS5S2ParametersGenerator. digest)
+                     (.init password salt iterations))
+        cparams    (.generateDerivedParameters pgen dsize)
+        password   (.getKey ^KeyParameter cparams)]
     {:alg alg
      :password password
      :salt salt
@@ -123,10 +127,10 @@
 
 (defmethod derive-password :bcrypt+sha512
   [{:keys [alg password salt iterations]}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
-        iterations (or iterations (get +iterations+ alg))
-        password (-> (hash/sha512 password)
-                     (BCrypt/generate salt iterations))]
+  (let [salt       (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        iterations (or iterations (get-in default-params [alg :iterations]))
+        password   (-> (hash/sha512 password)
+                       (BCrypt/generate salt iterations))]
     {:alg alg
      :iterations iterations
      :salt salt
@@ -134,10 +138,10 @@
 
 (defmethod derive-password :bcrypt+blake2b-512
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
-        iterations (or iterations (get +iterations+ alg))
-        password (-> (hash/blake2b-512 password)
-                     (BCrypt/generate salt iterations))]
+  (let [salt       (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        iterations (or iterations (get-in default-params [alg :iterations]))
+        password   (-> (hash/blake2b-512 password)
+                       (BCrypt/generate salt iterations))]
     {:alg alg
      :iterations iterations
      :salt salt
@@ -145,10 +149,10 @@
 
 (defmethod derive-password :bcrypt+sha384
   [{:keys [alg password salt iterations] :as pwdparams}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 16)))
-        iterations (or iterations (get +iterations+ alg))
-        password (-> (hash/sha384 password)
-                     (BCrypt/generate salt iterations))]
+  (let [salt       (codecs/to-bytes (or salt (nonce/random-bytes 16)))
+        iterations (or iterations (get-in default-params [alg :iterations]))
+        password   (-> (hash/sha384 password)
+                       (BCrypt/generate salt iterations))]
     {:alg alg
      :iterations iterations
      :salt salt
@@ -156,14 +160,14 @@
 
 (defmethod derive-password :scrypt
   [{:keys [alg password salt cpucost memcost parallelism] :as pwdparams}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
-        cpucost (or cpucost (get-in +iterations+ [:scrypt :cpucost]))
-        memcost (or memcost (get-in +iterations+ [:scrypt :memcost]))
+  (let [salt        (codecs/to-bytes (or salt (nonce/random-bytes 12)))
+        cpucost     (or cpucost (get-in default-params [:scrypt :cpucost]))
+        memcost     (or memcost (get-in default-params [:scrypt :memcost]))
         parallelism (or parallelism 1)
-        password (-> (bytes/concat salt password salt)
-                     (codecs/bytes->hex)
-                     (scrypt/encrypt cpucost memcost parallelism)
-                     (codecs/str->bytes))]
+        password    (-> (bytes/concat salt password salt)
+                        (codecs/bytes->hex)
+                        (scrypt/encrypt cpucost memcost parallelism)
+                        (codecs/str->bytes))]
     {:alg alg
      :cpucost cpucost
      :memcost memcost
@@ -174,8 +178,8 @@
 (defmethod derive-password :argon2id
   [{:keys [alg password salt memory iterations parallelism] :as pwdparams}]
   (let [salt        (codecs/to-bytes (or salt (nonce/random-bytes 16)))
-        memory      (or memory (get-in +iterations+ [:argon2id :memory])) ;; KiB
-        iterations  (or iterations (get-in +iterations+ [:argon2id :iterations]))
+        memory      (or memory (get-in default-params [:argon2id :memory])) ;; KiB
+        iterations  (or iterations (get-in default-params [:argon2id :iterations]))
         parallelism (or parallelism 1)
         params      (-> (Argon2Parameters$Builder. Argon2Parameters/ARGON2_id)
                         (.withSalt salt)
@@ -224,11 +228,12 @@
 
 (defn- derive-password-for-legacy-pbkdf2+sha256
   [{:keys [alg password salt saltsize iterations]}]
-  (let [salt (codecs/to-bytes (or salt (nonce/random-bytes 12)))
-        iterations (or iterations (get +iterations+ alg))
-        pgen (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
-               (.init password salt iterations))
-        password (.getKey (.generateDerivedParameters pgen 160))]
+  (let [salt       (codecs/to-bytes (or salt (nonce/random-bytes 12)))
+        iterations (or iterations (get-in default-params [alg :iterations]))
+        pgen       (doto (PKCS5S2ParametersGenerator. (SHA256Digest.))
+                     (.init password salt iterations))
+        cparams    (.generateDerivedParameters pgen 160)
+        password   (.getKey ^KeyParameter cparams)]
     {:alg alg
      :password password
      :salt salt
@@ -261,20 +266,20 @@
 
 (defmethod format-password :scrypt
   [{:keys [password salt cpucost memcost parallelism]}]
-  (let [salt (codecs/bytes->hex salt)
+  (let [salt     (codecs/bytes->hex salt)
         password (codecs/bytes->hex password)]
     (format "scrypt$%s$%s$%s$%s$%s" salt cpucost memcost parallelism password)))
 
 (defmethod format-password :argon2id
   [{:keys [password salt memory iterations parallelism]}]
-  (let [salt (codecs/bytes->hex salt)
+  (let [salt     (codecs/bytes->hex salt)
         password (codecs/bytes->hex password)]
     (format "argon2id$%s$%s$%s$%s$%s" salt memory iterations parallelism password)))
 
 (defmethod format-password :default
   [{:keys [alg password salt iterations]}]
-  (let [algname (name alg)
-        salt (codecs/bytes->hex salt)
+  (let [algname  (name alg)
+        salt     (codecs/bytes->hex salt)
         password (codecs/bytes->hex password)]
     (if (nil? iterations)
       (format "%s$%s$%s" algname salt password)
@@ -288,8 +293,10 @@
   [encryptedpassword]
   (let [[alg salt cc mc pll password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
-    (if (some nil? [salt cc mc pll password])
-      (throw (ex-info "Malformed hash" {})))
+    (when (some nil? [salt cc mc pll password])
+      (throw (ex-info "Malformed hash" {:type ::validation
+                                        :code :malformed-hash
+                                        :hint "Malformed Hash"})))
     {:alg alg
      :salt (codecs/hex->bytes salt)
      :password (codecs/hex->bytes password)
@@ -302,7 +309,9 @@
   (let [[alg salt mem iters pll password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
     (if (some nil? [salt mem iters pll password])
-      (throw (ex-info "Malformed hash" {})))
+      (throw (ex-info "Malformed hash" {:type ::validation
+                                        :code :malformed-hash
+                                        :hint "Malformed Hash"})))
     {:alg alg
      :salt (codecs/hex->bytes salt)
      :password (codecs/hex->bytes password)
@@ -314,8 +323,10 @@
   [encryptedpassword]
   (let [[alg salt iterations password] (str/split encryptedpassword #"\$")
         alg (keyword alg)]
-    (if (some nil? [salt iterations password])
-      (throw (ex-info "Malformed hash" {})))
+    (when (some nil? [salt iterations password])
+      (throw (ex-info "Malformed hash" {:type ::validation
+                                        :code :malformed-hash
+                                        :hint "Malformed Hash"})))
     {:alg alg
      :salt (codecs/hex->bytes salt)
      :password (codecs/hex->bytes password)
@@ -326,39 +337,26 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmethod must-update? :default
-  [{:keys [alg iterations]}]
-  (let [desired-iterations (get +iterations+ alg)]
-    (and desired-iterations (> desired-iterations iterations))))
-
-(defmethod must-update? :bcrypt+sha512
-  [{:keys [password iterations alg]}]
-  (or (not= (count password) 24)
-      (let [desired-iterations (get +iterations+ alg)]
-        (and desired-iterations (> desired-iterations iterations)))))
-
-(defmethod must-update? :pbkdf2+sha256
-  [{:keys [password iterations alg]}]
-  (or (< (count password) 32)
-      (let [desired-iterations (get +iterations+ alg)]
-        (and desired-iterations (> desired-iterations iterations)))))
+  [{:keys [alg] :as current-params} options]
+  (let [options (merge (get default-params alg) options)]
+    (when (contains? options :iterations)
+      (not= (:iterations current-params) (:iterations options)))))
 
 (defmethod must-update? :scrypt
-  [{:keys [alg memcost cpucost]}]
-  (let [desired-memcost (get-in +iterations+ [:scrypt :memcost])
-        desired-cpucost (get-in +iterations+ [:scrypt :cpucost])]
-    (and desired-cpucost
-         desired-memcost
-         (or (> desired-memcost memcost)
-             (> desired-cpucost cpucost)))))
+  [{:keys [alg] :as current-params} options]
+  (let [options (merge (get default-params alg) options)]
+    (when (and (contains? options :cpucost)
+               (contains? options :memcost))
+      (or (not= (:cpucost current-params) (:cpucost options))
+          (not= (:memcost current-params) (:memcost options))))))
 
 (defmethod must-update? :argon2id
-  [{:keys [alg memory iterations]}]
-  (let [desired-memory (get-in +iterations+ [:argon2id :memory])
-        desired-iterations (get-in +iterations+ [:argon2id :iterations])]
-    (and desired-memory
-         desired-iterations
-         (or (> desired-memory memory)
-             (> desired-iterations iterations)))))
+  [{:keys [alg] :as current-params} options]
+  (let [options (merge (get default-params alg) options)]
+    (when (and (contains? options :memory)
+               (contains? options :iterations))
+      (or (not= (:memory current-params) (:memory options))
+          (not= (:iterations current-params) (:iterations options))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public Api
@@ -368,40 +366,48 @@
   "Encrypts a raw string password."
   ([password] (derive password {}))
   ([password options]
-   (-> (assoc options
-              :alg (:alg options :bcrypt+sha512)
-              :password (codecs/to-bytes password))
+   (-> options
+       (assoc :alg (:alg options :bcrypt+sha512))
+       (assoc :password (codecs/to-bytes password))
        (derive-password)
        (format-password))))
 
-(def encrypt
-  "Backward compatibility alias for `derive`."
-  derive)
+(defn encrypt
+  "Backward compatibility alias for `derive`.
+
+  Should be consiered as DEPRECATED.
+  "
+  [& params]
+  (apply derive params))
 
 (defn check
   "Check if a unencrypted password matches with another encrypted
-  password."
+  password.
+
+  Should be considered as DEPRECATED.
+  "
   ([attempt encrypted]
    (check attempt encrypted {}))
-  ([attempt encrypted {:keys [limit setter prefered]}]
+  ([attempt encrypted {:keys [limit setter prefered] :as options}]
    (when (and attempt encrypted)
      (let [pwdparams (parse-password encrypted)]
        (if (and (set? limit) (not (contains? limit (:alg pwdparams))))
          false
          (let [attempt' (codecs/to-bytes attempt)
                result   (check-password pwdparams attempt')]
-           (when (and result (fn? setter) (must-update? pwdparams))
+           (when (and result (fn? setter) (must-update? pwdparams options))
              (setter attempt))
            result))))))
 
 (defn verify
   "Check if a unencrypted password matches with another encrypted
-  password. Analogous to `check` with different call signature."
+  password. Analogous to `check` with different call signature. Prefer
+  this method over `check`."
   ([attempt encrypted]
    (verify attempt encrypted {}))
-  ([attempt encrypted {:keys [limit prefered]}]
-   (when-not (and attempt encrypted)
-     (throw (java.lang.IllegalArgumentException. "invalid arguments")))
+  ([attempt encrypted {:keys [limit prefered] :as options}]
+   (assert (some? attempt) "expected `attempt` param to be provided")
+   (assert (some? encrypted) "expected `encrypted` param to be provided")
 
    (let [pparams (parse-password encrypted)
          attempt (codecs/to-bytes attempt)
@@ -411,5 +417,4 @@
        {:valid false
         :update false}
        {:valid result
-        :update (and result (must-update? pparams))}))))
-
+        :update (and result (must-update? pparams options))}))))

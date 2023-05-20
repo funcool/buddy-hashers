@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 2.0.158
+
+Date: 2023-05-20
+
+- Update dependencies.
+- **BREAKING CHANGE**: internal must-update? multimethod changed call
+  signature and make check algorithm more usable.
+
+
 ## Version 1.8.158
 
 Date: 2022-01-14

@@ -13,14 +13,15 @@
 ;; limitations under the License.
 
 (ns buddy.hashers-tests
-  (:require [clojure.test :refer :all]
-            [buddy.core.codecs :refer :all]
-            [buddy.core.nonce :as nonce]
-            [buddy.core.bytes :as bytes]
-            [buddy.core.codecs :as codecs]
-            [buddy.hashers :as hashers]))
+  (:require
+   [clojure.test :as t :refer :all]
+   [buddy.core.codecs :refer :all]
+   [buddy.core.nonce :as nonce]
+   [buddy.core.bytes :as bytes]
+   [buddy.core.codecs :as codecs]
+   [buddy.hashers :as hashers]))
 
-(deftest buddy-hashers-check
+(t/deftest buddy-hashers-check
   (let [pwd "my-test-password"]
     (are [alg]
         (let [result (hashers/encrypt pwd {:alg alg})]
@@ -35,7 +36,7 @@
       :scrypt
       :argon2id)))
 
-(deftest buddy-hashers-verify
+(t/deftest buddy-hashers-verify
   (let [pwd "my-test-password"]
     (are [alg]
         (let [result (hashers/encrypt pwd {:alg alg})]
@@ -50,7 +51,7 @@
       :scrypt
       :argon2id)))
 
-(deftest confirm-check-failure
+(t/deftest confirm-check-failure
   (let [pwd-good "my-test-password"
         pwd-bad "my-text-password"]
     (are [alg]
@@ -67,7 +68,7 @@
       :scrypt
       :argon2id)))
 
-(deftest confirm-verify-failure
+(t/deftest confirm-verify-failure
   (let [pwd-good "my-test-password"
         pwd-bad "my-text-password"]
     (are [alg]
@@ -84,14 +85,14 @@
       :scrypt
       :argon2id)))
 
-(deftest buddy-hashers-nil
+(t/deftest buddy-hashers-nil
   (let [pwd "my-test-password"
         result (hashers/encrypt pwd {:alg :pbkdf2+sha256})]
-    (is (nil? (hashers/check nil result)))
-    (is (nil? (hashers/check pwd nil)))
-    (is (nil? (hashers/check nil nil)))))
+    (t/is (nil? (hashers/check nil result)))
+    (t/is (nil? (hashers/check pwd nil)))
+    (t/is (nil? (hashers/check nil nil)))))
 
-(deftest algorithm-embedded-in-hash
+(t/deftest algorithm-embedded-in-hash
   (let [pwd "my-test-password"]
     (are [alg]
         (-> (hashers/encrypt pwd {:alg alg})
@@ -111,7 +112,7 @@
 ;; start of the hash, and that the salt is also appended (after
 ;; being converted to their byte values)
 
-(deftest received-salt-embedded-in-hash
+(t/deftest received-salt-embedded-in-hash
   (let [pwd "my-test-password"
         salt (nonce/random-bytes 16)]
     (are [alg]
@@ -128,57 +129,19 @@
       :scrypt
       :argon2id)))
 
-(deftest limit-available-algorithms-check
+(t/deftest limit-available-algorithms-check
   (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
         limit #{:pbkdf2+sha256 :bcrypt+sha512}]
-    (is (hashers/check "hello" pwd))
-    (is (not (hashers/check "hello" pwd {:limit limit})))))
+    (t/is (hashers/check "hello" pwd))
+    (t/is (not (hashers/check "hello" pwd {:limit limit})))))
 
-(deftest limit-available-algorithms-verify
+(t/deftest limit-available-algorithms-verify
   (let [pwd   (hashers/encrypt "hello" {:alg :scrypt})
         limit #{:pbkdf2+sha256 :bcrypt+sha512}]
-    (is (:valid (hashers/verify "hello" pwd)))
-    (is (not (:valid (hashers/verify "hello" pwd {:limit limit}))))))
+    (t/is (:valid (hashers/verify "hello" pwd)))
+    (t/is (not (:valid (hashers/verify "hello" pwd {:limit limit}))))))
 
-(deftest update-policy-generic-check
-  (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
-                                      :iterations 10})
-        p (promise)]
-    (is (hashers/check "hello" pwd {:setter #(deliver p %)}))
-    (is (= (deref p 10 nil) "hello"))))
-
-(deftest update-policy-generic-verify
-  (let [pwd (hashers/encrypt "hello" {:alg :bcrypt+sha512
-                                      :iterations 10})
-        res (hashers/verify "hello" pwd)]
-    (is (true? (:valid res)))
-    (is (true? (:update res)))))
-
-(deftest update-policy-for-pbkdf2+sha256
-  (let [pwd-legacy "pbkdf2+sha256$7d0994313982465d82372493$100000$98c4b3043b30622917516e97d1c6bd9936337e8c"
-        pwd-new1 "pbkdf2+sha256$b676896c5e9ab9e21b7feafb0d1b8a1b$100000$7af67cae17babcf5cfc20f4f95878b9477023b2797a0e6942aeef567cd4bf1b2"
-        pwd-new2 (hashers/encrypt "test" {:alg :pbkdf2+sha256})
-        p1 (promise)
-        p2 (promise)
-        p3 (promise)]
-    (is (hashers/check "test" pwd-legacy {:setter #(deliver p1 %)}))
-    (is (hashers/check "test" pwd-new1 {:setter #(deliver p2 %)}))
-    (is (hashers/check "test" pwd-new2 {:setter #(deliver p3 %)}))
-    (is (= (deref p1 10 nil) "test"))
-    (is (= (deref p2 10 nil) nil))
-    (is (= (deref p3 10 nil) nil))))
-
-(deftest update-policy-for-bcrypt+sha512
-  (let [pwd-legacy "bcrypt+sha512$680bf9ad0bf9f8249bfebb85$12$243261243132244b4e2e4e456650704558323964686e6c64644f4b73656a6879584f635a4f6b7778596132475036772e6c2e784f49596631556f7679"
-        pwd-new "bcrypt+sha512$b932bf208c7f3ecb563eebe89c39115b$12$bc3633d1f07c47edd91f0e7cf5649b040ea868cec63cda31"
-        p1 (promise)
-        p2 (promise)]
-    (is (hashers/check "test" pwd-legacy {:setter #(deliver p1 %)}))
-    (is (hashers/check "test" pwd-new {:setter #(deliver p2 %)}))
-    (is (= (deref p1 10 nil) "test"))
-    (is (= (deref p2 10 nil) nil))))
-
-(deftest possible-regressions-checker
+(t/deftest possible-regressions-checker
   (let [pbkdf2+sha1 "pbkdf2+sha1$fcf7c2e5848193f91d8a5a40$100000$b499843df692e02be67e534f8592a0785927843a"
         pbkdf2+sha256-legacy "pbkdf2+sha256$7d0994313982465d82372493$100000$98c4b3043b30622917516e97d1c6bd9936337e8c"
         pbkdf2+sha256 "pbkdf2+sha256$092c7d26206ae9641d225ca432a9efcf$100000$76417ba855c352750319ae649141082bfa83e18ba3a4937580ae7d0226168c6a"
@@ -192,25 +155,24 @@
         bcrypt+sha512 "bcrypt+sha512$b932bf208c7f3ecb563eebe89c39115b$12$bc3633d1f07c47edd91f0e7cf5649b040ea868cec63cda31"
         bcrypt+sha384 "bcrypt+sha384$5c3b8cc880e0dd91520a900a8c8c6223$12$fa6e0a810b81b04634b19311e77eb00ba1d0f12c570adafa"
         argon2id "argon2id$9682763587dcaf962161d4b24d7246b3$65536$2$1$4181787747eb7330abda8f42b2fb0dfab207e5cf0c0031a2233a00484d739c8c"]
-    (is (hashers/check "test" pbkdf2+sha1))
-    (is (hashers/check "test" pbkdf2+sha256))
-    (is (hashers/check "test" pbkdf2+sha256-legacy))
-    (is (hashers/check "test" pbkdf2+sha512))
-    (is (hashers/check "test" pbkdf2+sha3-256))
-    (is (hashers/check "test" scrypt))
-    (is (hashers/check "test" pbkdf2+blake2b-512))
-    (is (hashers/check "test" bcrypt+sha512-legacy))
-    (is (hashers/check "test" bcrypt+sha512))
-    (is (hashers/check "test" bcrypt+sha384))
-    (is (hashers/check "test" bcrypt+blake2b-512))
-    (is (hashers/check "test" argon2id))
+    (t/is (hashers/check "test" pbkdf2+sha1))
+    (t/is (hashers/check "test" pbkdf2+sha256))
+    (t/is (hashers/check "test" pbkdf2+sha256-legacy))
+    (t/is (hashers/check "test" pbkdf2+sha512))
+    (t/is (hashers/check "test" pbkdf2+sha3-256))
+    (t/is (hashers/check "test" scrypt))
+    (t/is (hashers/check "test" pbkdf2+blake2b-512))
+    (t/is (hashers/check "test" bcrypt+sha512-legacy))
+    (t/is (hashers/check "test" bcrypt+sha512))
+    (t/is (hashers/check "test" bcrypt+sha384))
+    (t/is (hashers/check "test" bcrypt+blake2b-512))
+    (t/is  (hashers/check "test" argon2id))
     ))
 
-(deftest debug-time-bench
+(t/deftest debug-time-bench
   (let [pwd "my-test-password"]
     (are [alg]
         (do
-          (println alg)
           (time (hashers/encrypt pwd {:alg alg}))
           true)
       :pbkdf2+sha1
@@ -223,4 +185,40 @@
       :bcrypt+blake2b-512
       :scrypt
       :argon2id)))
+
+(t/deftest must-update-1
+  (doseq [alg [:pbkdf2+sha1
+               :pbkdf2+sha256
+               :pbkdf2+sha512
+               :pbkdf2+sha3-256
+               :pbkdf2+blake2b-512
+               :bcrypt+sha512
+               :bcrypt+sha384
+               :bcrypt+blake2b-512]]
+    (let [password (hashers/derive "test" {:iterations 4 :alg alg})
+          result1  (hashers/verify "test" password {:iterations 4 :alg alg})
+          result2  (hashers/verify "test" password {:iterations 5 :alg alg})]
+      (t/is (true? (:valid result1)))
+      (t/is (false? (:update result1)))
+
+      (t/is (true? (:valid result2)))
+      (t/is (true? (:update result2))))))
+
+(t/deftest must-update-scrypt
+  (let [password (hashers/derive "test" {:cpucost 4 :alg :scrypt})
+        result1  (hashers/verify "test" password {:cpucost 4 :alg :scrypt})
+        result2  (hashers/verify "test" password {:cpucost 5 :alg :scrypt})]
+    (t/is (true? (:valid result1)))
+    (t/is (false? (:update result1)))
+    (t/is (true? (:valid result2)))
+    (t/is (true? (:update result2)))))
+
+(t/deftest must-update-argon
+  (let [password (hashers/derive "test" {:iterations 1 :alg :argon2id})
+        result1  (hashers/verify "test" password {:iterations 1 :alg :argon2id})
+        result2  (hashers/verify "test" password {:iterations 2 :alg :argon2id})]
+    (t/is (true? (:valid result1)))
+    (t/is (false? (:update result1)))
+    (t/is (true? (:valid result2)))
+    (t/is (true? (:update result2)))))
 
