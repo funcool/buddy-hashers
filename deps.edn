@@ -1,5 +1,5 @@
 {:deps
- {buddy/buddy-core {:mvn/version "1.11.418"}
+ {buddy/buddy-core {:mvn/version "1.11.423"}
   clojurewerkz/scrypt {:mvn/version "1.2.0"}}
  :paths ["src/clj" "target/classes"]
  :aliases
