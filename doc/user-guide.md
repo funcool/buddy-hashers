@@ -27,13 +27,13 @@ The simplest way to use _buddy-core_ in a clojure project, is by including it in
 dependency vector on your *_project.clj_* file:
 
 ```clojure
-[buddy/buddy-hashers "2.0.162"]
+[buddy/buddy-hashers "2.0.167"]
 ```
 
 Or deps.edn:
 
 ```clojure
-buddy/buddy-hashers {:mvn/version "2.0.162"}
+buddy/buddy-hashers {:mvn/version "2.0.167"}
 ```
 
 And is tested under JDK >= 8

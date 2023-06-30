@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 2.0.167
+
+Date: 2023-06-30
+
+- Update dependencies.
+
+
 ## Version 2.0.162
 
 Date: 2023-05-20
